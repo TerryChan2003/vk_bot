@@ -95,6 +95,7 @@ def generate_file_doc():
 
 @app.route('/ans_report/<int:rep_id>/<path:text>')
 @auth_wrap
+@check_helper_wrap
 def add_report(text=None, from_id=None, rep_id=None):
     helper = module.Helpers.get(user_id=from_id)
     rep = module.Reports.get_by_id(rep_id)
@@ -102,6 +103,9 @@ def add_report(text=None, from_id=None, rep_id=None):
     rep.helper = str(from_id)
     rep.otime = module.get_time()
     rep.save()
+    service_session = VkApi(token=service_token)
+    service_api = service_session.get_api()
+    service_api.notifications.sendMessage(user_ids=rep.user_id, message=f"Агент поддержки #{helper.id} ответил на вопрос {rep.id}", fragment="adm")
     return jsonify(items="Success")
 
 
@@ -124,15 +128,6 @@ def admins_get(chat_id=None, user_id=None, from_id=None):
     for admin in query.dicts():
         data["items"].append(admin)
     return jsonify(data)
-
-
-@app.route('/ans_addpush/<int:id>')
-@auth_wrap
-def ans_addpush(id=None):
-    service_session = VkApi(token=service_token)
-    service_api = service_session.get_api()
-    r = Reports.get_by_id(id)
-    service_api.notifications.sendMessage(user_ids=r.user_id, message=f"Агент поддержки #{Helpers.get(int(r.helper)).id} ответил на вопрос {r.id}", fragment="adm")
 
 
 @app.route('/adminses/')
