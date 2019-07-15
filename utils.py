@@ -312,7 +312,7 @@ def sendmessage_chat(chat_id, message, **kwargs):
 
 
 def exit_bot_chat(chat_id):
-    vk.messages.removeChatUser(chat_id=chat_id, member_id=-groupid)
+    vk.messages.removeChatUser(chat_id=chat_id, member_id=groupid)
 
 
 def error_handler(command, errors, peer_id, **kwargs):

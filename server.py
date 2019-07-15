@@ -190,6 +190,8 @@ def process_command(chat_id, raw, text, from_id, peer_id, fwd_messages=None, rep
 def event_handler(event):
     print(event)
     if event.type == VkBotEventType.MESSAGE_NEW:
+        if not (db.check_chat(event.obj.peer_id - CHAT_START_ID) or str(event.obj.text).startswith("/getadmin")):
+            return
         options = {}
         obj = event.obj
         date = obj.date
