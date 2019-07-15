@@ -61,7 +61,7 @@ def check_helper_wrap(f):
             kwargs["from_id"] = from_id
             return f(*args, **kwargs)
         except Exception as e:
-            return jsonify(error=str(e))
+            return jsonify(items=False)
     return wrap
 
 
