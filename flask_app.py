@@ -96,7 +96,7 @@ def add_report(text=None, from_id=None, rep_id=None):
     rep.save()
     service_session = VkApi(token=service_token)
     service_api = service_session.get_api()
-    service_api.notifications.sendMessage(user_ids=rep.user_id, message=f"Агент поддержки #{helper.id} ответил на вопрос {rep.id}", fragment="adm")
+    service_api.notifications.sendMessage(user_ids=rep.user_id, message=f"Агент поддержки #{helper.id} ответил на вопрос {rep.id}", fragment=f"report{rep.id}")
     return jsonify(items="Success")
 
 
@@ -153,7 +153,10 @@ def get_helpers_list(user_id=None, from_id=None):
 @auth_wrap
 @check_helper_wrap
 def check_helper(from_id=None):
-    return jsonify(items=model_to_dict(Helpers.get(user_id=from_id)))
+    try:
+        return jsonify(items=model_to_dict(Helpers.get(user_id=from_id)))
+    except:
+        return jsonify(items=False)
 
 
 @app.route('/methods/users_get')

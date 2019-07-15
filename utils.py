@@ -311,6 +311,10 @@ def sendmessage_chat(chat_id, message, **kwargs):
                      message=message, random_id=get_random_id(), **kwargs)
 
 
+def exit_bot_chat(chat_id):
+    vk.messages.removeChatUser(chat_id=chat_id, member_id=-groupid)
+
+
 def error_handler(command, errors, peer_id, **kwargs):
     if "text_args" in errors:
         sendmessage(peer_id, "Укажите нужное сообщение в кавычках.")
