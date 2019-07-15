@@ -30,6 +30,10 @@ def check_group_verify_permission(f):
     wrap.arguments = f.__code__.co_varnames[:f.__code__.co_argcount]
     return wrap
         
+@enable_command_with_permission(5)
+def msg_to(args, from_id, text_args, chat_id, **kwargs):
+    sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id)} с текстом: {text_args[0]}")
+    sendmessage_chat(chat_id, f"Сообщение успешно отправлено")
 
 @enable_command_with_permission(3)
 def enable_check_group(chat_id, group_ids, **kwargs):
