@@ -22,9 +22,11 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 import importlib
 
 tmp_greet = {}
+tmp_chat_msg = {}
+msg_limits = 2
 
 
-def timing():
+def timing_greet():
     time.sleep(1)
     global tmp_greet
     for i in tmp_greet:
@@ -32,11 +34,27 @@ def timing():
     tmp_greet = {}
 
 
+def timing_messages(chat_id):
+    time.sleep(1)
+    global tmp_chat_msg
+    k = chat_id
+    v = tmp_chat_msg[k]
+    if v > msg_limits:
+        sendmessage_chat(2, f"Притормозите базар в конференции {k} больше {msg_limits} сообщений в секунду!")
+    del tmp_chat_msg[chat_id]
+
+
 bot_longpoll = VkBotLongPoll(session, groupid)
 logfile = "log_errors.txt"
 
 
 def process_user(from_id, chat_id, text):
+    global tmp_chat_msg
+    if chat_id in tmp_chat_msg:
+        tmp_chat_msg[chat_id] += 1
+    else:
+        tmp_chat_msg[chat_id] = 1
+        Thread(target=timing_messages, args=(chat_id,)).start()
     if not db.check_user(from_id):
         if from_id > 0:
             x = users_get(from_id, "sex,photo_200")
@@ -125,7 +143,7 @@ def process_action(chat_id, peer_id, date, from_id, action, attachments):
             global tmp_greet
             if chat_id not in tmp_greet:
                 if not tmp_greet:
-                    Thread(target=timing).start()
+                    Thread(target=timing_greet).start()
                 tmp_greet[chat_id] = date
             elif tmp_greet[chat_id] != date:
                 sendmessage_chat(chat_id, db.get_greeting(chat_id))
