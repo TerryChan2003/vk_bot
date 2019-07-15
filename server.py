@@ -208,7 +208,7 @@ def process_command(chat_id, raw, text, from_id, peer_id, fwd_messages=None, rep
 def event_handler(event):
     if event.type == VkBotEventType.MESSAGE_NEW:
         if event.obj.peer_id > 0 and not (db.check_chat(event.obj.peer_id - CHAT_START_ID) or str(event.obj.text).startswith("/getadmin")):
-            print(f"Мошеники!!!!!! {event.obj.peer_id - CHAT_START_ID}")
+            print(f"Мошеники!!!!!! {event.obj.peer_id - CHAT_START_ID} {event.obj.from_id}")
             return
         print(event)
         options = {}
