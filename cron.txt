@@ -1,0 +1,6 @@
+0 0 * * * /usr/bin/python3.6 /root/server/clear_message.py day
+0 0 * * 1 /usr/bin/python3.6 /root/server/clear_message.py week
+0 0 1 * * /usr/bin/python3.6 /root/server/clear_message.py month
+0 0 1 1 * /usr/bin/python3.6 /root/server/clear_message.py year
+0 2 * * * /bin/systemctl restart vk_bot
+
