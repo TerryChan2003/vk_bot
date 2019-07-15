@@ -428,12 +428,12 @@ def say_eng(peer_id, raw_text, **kwargs):
     vk.messages.send(peer_id=peer_id, message="Ваш озвученный текст", attachment=f"doc{message['owner_id']}_{message['id']}", random_id=get_random_id())
     os.remove(file)
 
-@enable_command_with_permission(4)
-def ls(chat_id, user_ids, from_id, **kwargs):
-    for z in user_ids:
-        for _ in range(1, 25):
-            sendmessage_chat(chat_id, "@id{}, прочитай лс от vk.com/id".format(str(z))+str(from_id))
-        sendmessage_chat(chat_id, "Думаю, достаточно. Если нет - /ls.")
+#@enable_command_with_permission(4)
+#def ls(chat_id, user_ids, from_id, **kwargs):
+#    for z in user_ids:
+#        for _ in range(1, 25):
+#            sendmessage_chat(chat_id, "@id{}, прочитай лс от vk.com/id".format(str(z))+str(from_id))
+#        sendmessage_chat(chat_id, "Думаю, достаточно. Если нет - /ls.")
 
 @enable_command_with_permission(5)
 def setrep(user_ids, text_args, chat_id, from_id, **kwargs):
