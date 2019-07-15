@@ -41,15 +41,6 @@ def is_valid(*, query: dict, secret: str) -> bool:
 def auth_wrap(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        """
-        try:
-            status = is_valid(query="&".join([f"{k}={v}" for k, v in request.args.items()]), secret="T0KjbYYFEB5VlbUh3ACv")
-            print(status)
-        except Exception as e:
-            status = False
-        if not status:
-            return jsonify(items="error: No access")
-        """
         url = "https://example.com/?" + "&".join([f"{k}={v}" for k, v in request.args.items()])
         query_params = dict(parse_qsl(urlparse(url).query, keep_blank_values=True))
         status = is_valid(query=query_params, secret=client_secret)
