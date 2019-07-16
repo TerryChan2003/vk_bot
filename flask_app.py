@@ -264,7 +264,7 @@ def get_chat_users(chat_id=None, from_id=None):
 @auth_wrap
 def get_users():
     data = {"items": []}
-    for user in module.Users.select().where().dicts():
+    for user in module.Users.select().dicts():
         data["items"].append(user)
     return jsonify(data)
 
