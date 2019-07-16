@@ -74,6 +74,11 @@ def disable_check_group(chat_id, **kwargs):
         sendmessage_chat(chat_id, "Ограничение вступления в беседу не включено")
 
 @enable_command_with_permission(4)
+def exit_chat(chat_id, args, from_id, **kwargs):
+    exit_bot_chat(int(args[0]))
+    sendmessage_chat(chat_id, "Успешно вышел")
+
+@enable_command_with_permission(4)
 @enable_for_helper
 def ckick(args, chat_id, from_id, user_ids, text_args, **kwargs):
     from_chat_id = chat_id
