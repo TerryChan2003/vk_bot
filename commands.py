@@ -880,38 +880,27 @@ def unpin(peer_id, **kwargs):
 
 @enable_command_with_permission(2)
 def ban(chat_id, user_ids, from_id, **kwargs):
+    results = []
+    from_r = get_ref(from_id)
     for i in user_ids:
-        if i == -173243972:
-            sendmessage_chat(chat_id, "Вы не можете заблокировать бота")
-            return
-        if i == from_id:
-            return sendmessage_chat(chat_id, "Вы не можете заблокировать себя из конференции.")
-        x = get_ref(i, "gen") 
-        if db.get_level_admin(chat_id, from_id) <= db.get_level_admin(chat_id, i):
-            sendmessage_chat(chat_id, "Вы не имеете право банить выше или равному вам уровню администрации")
-            return
-        if not db.check_ban(chat_id, i):
-            try:
-                sendmessage_chat(chat_id, f"Блокирование из конференции {x}")
-                vk.messages.removeChatUser(chat_id=chat_id, member_id=i)
-                try:
-                    Admin_List.get(chat_id=chat_id, user_id=i).delete_instance()
-                except Exception as e:
-                    print(e)
-            except Exception as e:
-                if str(e) == "[15] Access denied: can't remove this user":
-                    sendmessage_chat(chat_id, f"{x} не удалось заблокировать, вероятнее всего он администратор.")
-                    continue
-                elif str(e) == "[935] User not found in chat":
-                    sendmessage_chat(chat_id, f"Внимание! {x} нет в конференции")
-                else:
-                    raise e
-            db.add_ban(chat_id, i)
+        if db.check_ban(chat_id, i):
+            results.append(f"{get_ref(i)} уже находится в списке заблокированных")
+        elif i == from_id:
+            results.append("Вы не можете заблокировать себя из конференции.")
+        elif not vk_member_exists(chat_id, int(i)):
+            results.append(f"{get_ref(i, 'gen')} не существует в конференции.")
+        elif not vk_member_can_kick(chat_id, int(i)):
+            results.append(f"{get_ref(i, 'gen')} нельзя исключить, т.к. он является администратором.")
+        elif db.get_level_admin(chat_id, from_id) <= db.get_level_admin(chat_id, i):
+            results.append(f"Вы не можете заблокировать {get_ref(i, 'gen')}, т.к. его уровень администрации выше или равен вашему.")
         else:
-            if str(i).startswith("-"):
-                sendmessage_chat(chat_id, f"Группа {x} уже была заблокирована в данной конференции.")
-            else:
-                sendmessage_chat(chat_id, f"{x} уже был заблокирован в данной конференции.")
+            results.append(f"{from_r} заблокировал {get_ref(i, 'gen')}")
+            vk.messages.removeChatUser(chat_id=chat_id, member_id=i)
+            db.remove_admin(chat_id, i)
+            db.add_ban(chat_id, i)
+    for i in group_words(results, "", delimiter="\n"):
+        sendmessage_chat(chat_id, i)
+    
 
 @enable_command_with_permission(2)
 def unban(chat_id, user_ids, from_id, **kwargs):

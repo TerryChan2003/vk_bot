@@ -153,15 +153,15 @@ def users_get(user_id, fields="", **kwargs):
         ...
 
 
-def group_words(words, word=".", length=4096):
+def group_words(words, word=".", length=4096, delimiter=""):
     r = []
     tmp = word
     for i in words:
-        if len(tmp) + len(i) > length:
+        if len(tmp) + len(delimiter) + len(i) > length:
             r.append(tmp)
-            tmp = word + i
+            tmp = word + delimiter + i
         else:
-            tmp += i
+            tmp += delimiter + i
     if tmp:
         r.append(tmp)
     return r

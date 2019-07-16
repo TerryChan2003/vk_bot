@@ -103,7 +103,7 @@ class Black_List(BaseModel):
 
 
 class Users(BaseModel):
-    user_id=IntegerField()
+    user_id=IntegerField(unique=True)
     first_name=CharField()
     last_name=CharField()
     sex=IntegerField()
@@ -112,22 +112,6 @@ class Users(BaseModel):
     message_month=IntegerField(default = 1)
     message_year=IntegerField(default = 1)
     photo_200=CharField(default = "", null = True)
-
-    def clear_day(self):
-        self.message_today=0
-        self.save()
-
-    def clear_week(self):
-        self.message_week=0
-        self.save()
-
-    def clear_month(self):
-        self.message_month=0
-        self.save()
-
-    def clear_year(self):
-        self.message_year=0
-        self.save()
 
 class ChatMembers(BaseModel):
     chat_id=IntegerField()
