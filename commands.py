@@ -887,9 +887,7 @@ def ban(chat_id, user_ids, from_id, **kwargs):
             results.append(f"{get_ref(i)} уже находится в списке заблокированных")
         elif i == from_id:
             results.append("Вы не можете заблокировать себя из конференции.")
-        elif not vk_member_exists(chat_id, int(i)):
-            results.append(f"{get_ref(i, 'gen')} не существует в конференции.")
-        elif not vk_member_can_kick(chat_id, int(i)):
+        elif vk_member_exists(chat_id, int(i)) and not vk_member_can_kick(chat_id, int(i)):
             results.append(f"{get_ref(i, 'gen')} нельзя исключить, т.к. он является администратором.")
         elif db.get_level_admin(chat_id, from_id) <= db.get_level_admin(chat_id, i):
             results.append(f"Вы не можете заблокировать {get_ref(i, 'gen')}, т.к. его уровень администрации выше или равен вашему.")
