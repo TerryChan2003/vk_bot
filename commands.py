@@ -893,7 +893,8 @@ def ban(chat_id, user_ids, from_id, **kwargs):
             results.append(f"Вы не можете заблокировать {get_ref(i, 'gen')}, т.к. его уровень администрации выше или равен вашему.")
         else:
             results.append(f"{from_r} заблокировал {get_ref(i, 'gen')}")
-            vk.messages.removeChatUser(chat_id=chat_id, member_id=i)
+            try: vk.messages.removeChatUser(chat_id=chat_id, member_id=i)
+            except: ...
             db.remove_admin(chat_id, i)
             db.add_ban(chat_id, i)
     for i in group_words(results, "", delimiter="\n"):
