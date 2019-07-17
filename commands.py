@@ -942,7 +942,7 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
                     url = size["url"]
                     max_p = size["width"] * size["height"]
             photo = wget.download(url)
-            photo_js = uploader.photo_messages(photo)
+            photo_js = uploader.photo_messages(photo)[0]
             os.remove(photo)
             l.append(f"photo{photo_js['owner_id']}_{photo_js['id']}")
     try:
