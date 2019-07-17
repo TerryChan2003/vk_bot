@@ -311,7 +311,7 @@ def enable_command_with_permission(permission):
 
 def sendmessage(peer_id, message, **kwargs):
     vk.messages.send(peer_id=peer_id,
-                     message=message, random_id=get_random_id())
+                     message=message, random_id=get_random_id(), **kwargs)
 
 
 def sendmessage_chat(chat_id, message, **kwargs):
