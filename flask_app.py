@@ -193,7 +193,7 @@ def create_report(from_id=None):
 @app.route('/group_check')
 @auth_wrap
 def group_check(from_id=None):
-    group_id = request.args.get("group")
+    group_id = request.args.get("group_id")
     return jsonify(bool(vk.groups.isMember(user_id=from_id, group_id=group_id)))
 
 
