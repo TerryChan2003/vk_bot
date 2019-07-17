@@ -176,6 +176,17 @@ def get_optimized_words(text):
     words = list(set(translit(text, "ru").lower().split()))
     return words
 
+def get_attachment_photo(photo):
+    os.chdir("/root/server/tmp")
+    max_p = 0
+    for size in photo["sizes"]:
+        if size["width"] * size["height"] > max_p:
+            url = size["url"]
+            max_p = size["width"] * size["height"]
+    photo = wget.download(url)
+    photo_js = uploader.photo_messages(photo)[0]
+    os.remove(photo)
+    return f"photo{photo_js['owner_id']}_{photo_js['id']}"
 
 def groups_get(group_id, fields="", **kwargs):
     try:

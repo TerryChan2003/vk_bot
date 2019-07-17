@@ -34,11 +34,15 @@ def check_group_verify_permission(f):
         
 @enable_command_with_permission(4)
 def msg_to(args, from_id, text_args, chat_id, **kwargs):
+    l = []
+    for attach in kwargs["attachments"]:
+        if attach["type"] == "photo":
+            l.append(get_attachment_photo(attach["photo"]))
     try:
         for _ in range(int(args[1])):
-            sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id) + 1} с текстом: {text_args[0]}")
+            sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id) + 1} с текстом: {text_args[0]}", attachment=",".join(l))
     except:
-        sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id) + 1} с текстом: {text_args[0]}")
+        sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id) + 1} с текстом: {text_args[0]}", attachment=",".join(l))
     sendmessage_chat(chat_id, f"Сообщение успешно отправлено")
 
 @enable_command_with_permission(3)
@@ -705,18 +709,9 @@ def report(chat_id, from_id, **kwargs):
     if otv == "":
         otv = "-"
     l = []
-    os.chdir("/root/server/tmp")
     for attach in kwargs["attachments"]:
         if attach["type"] == "photo":
-            max_p = 0
-            for size in attach["photo"]["sizes"]:
-                if size["width"] * size["height"] > max_p:
-                    url = size["url"]
-                    max_p = size["width"] * size["height"]
-            photo = wget.download(url)
-            photo_js = uploader.photo_messages(photo)[0]
-            os.remove(photo)
-            l.append(f"photo{photo_js['owner_id']}_{photo_js['id']}")
+            l.append(get_attachment_photo(attach["photo"]))
     sendmessage_chat(2, "[REPORTS] Новый REPORT: {}\nID репорта: {}\nОтправил: @id{} ({} {})\
     \n\nНет ответа: {}".format(text, report.id, from_id, x['first_name'], x['last_name'], otv), attachment=",".join(l))
 
@@ -945,19 +940,10 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
     db.update_reports(id, "helper", from_id)
     db.update_reports(id, "otext", text)
     db.update_reports(id, "otime", get_time())
-    os.chdir("/root/server/tmp")
     l = []
     for attach in kwargs["attachments"]:
         if attach["type"] == "photo":
-            max_p = 0
-            for size in attach["photo"]["sizes"]:
-                if size["width"] * size["height"] > max_p:
-                    url = size["url"]
-                    max_p = size["width"] * size["height"]
-            photo = wget.download(url)
-            photo_js = uploader.photo_messages(photo)[0]
-            os.remove(photo)
-            l.append(f"photo{photo_js['owner_id']}_{photo_js['id']}")
+            l.append(get_attachment_photo(attach["photo"]))
     try:
         sendmessage(i.user_id, "Вопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.text, post, text), attachment=",".join(l))
     except:
@@ -968,10 +954,14 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
 @enable_command_with_permission(5)
 def msg(chat_id, text_args, from_id, **kwargs):
     sendmessage_chat(chat_id, "Началась рассылка сообщений!")
+    l = []
+    for attach in kwargs["attachments"]:
+        if attach["type"] == "photo":
+            l.append(get_attachment_photo(attach["photo"]))
     for i in db.get_chat_infos():
         if i.chat_id != chat_id:
             try:
-                sendmessage_chat(i.chat_id, text_args[0])
+                sendmessage_chat(i.chat_id, text_args[0], attachment=",".join(l))
             except Exception as e:
                 sendmessage_chat(chat_id, "Не удалось отправить вызвало ошибку: " + str(e))
     sendmessage_chat(chat_id, "Рассылка чата закончилась!")
