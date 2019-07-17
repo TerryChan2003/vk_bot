@@ -54,8 +54,14 @@ def timing_messages(chat_id, from_id):
             warnings_spam[chat_id] = {}
             warnings_spam[chat_id][from_id] = 1
         if warnings_spam[chat_id][from_id] >= 3:
-            sendmessage_chat(chat_id, "Мы вынуждены Вас кикнуть из-за спама.")
-            kick_chat_member(chat_id, from_id)
+            if vk_member_can_kick(chat_id, from_id):
+                sendmessage_chat(chat_id, "Мы вынуждены Вас кикнуть из-за спама.")
+                sendmessage_chat(2, f"""[ANTI-SPAM] Конференция {chat_id} подозревается в спаме. Сообщений в секунду: {v}, отправители: {get_ref(from_id)}. Дата и время: {get_time()}
+Информация о беседе:
+Название: {db.get_title(chat_id)}
+Количество участников: {len(vk_get_chat_members(chat_id))}
+Был исключен из беседы""")
+                kick_chat_member(chat_id, from_id)
     del tmp_chat_msg[chat_id][from_id]
 
 
