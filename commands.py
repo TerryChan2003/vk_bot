@@ -932,6 +932,9 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
     db.update_reports(id, "helper", from_id)
     db.update_reports(id, "otext", text)
     db.update_reports(id, "otime", get_time())
+    os.chdir("/root/server/tmp")
+    for i in kwargs["attachments"]:
+        print(i)
     try:
         sendmessage(i.user_id, "Вопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.text, post, text))
     except:
