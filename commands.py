@@ -312,9 +312,12 @@ def warn_switch(chat_id, **kwargs):
 @check_warn_permission
 def get_warns(chat_id, **kwargs):
     warn_max = kwargs["warn_max"]
+    l = []
     if db.get_warns(chat_id).count():
         for i in db.get_warns(chat_id):
-            sendmessage_chat(chat_id,f"@id{i.user_id} (Пользователь) имеет {i.count} предупреждений из {warn_max} максимальных")
+            l.append(f"@id{i.user_id} (Пользователь) имеет {i.count} предупреждений из {warn_max} максимальных")
+        for i in group_words(l, "", delimiter="\n"):
+            sendmessage_chat(chat_id, i)
     else:
         sendmessage_chat(chat_id, "Нет пользователей с предупреждениями")
 
