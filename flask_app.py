@@ -105,12 +105,6 @@ def teste():
     return "Сайт TheDeaX"
 
 
-@app.route('/cleaner/')
-@auth_wrap
-def clean_world(from_id=None):
-    return f"{str(module.Users.delete().where(module.Users.message_year < 50).execute())} users cleaned"
-
-
 @app.route('/admins/')
 @auth_wrap
 def admins_get(chat_id=None, user_id=None, from_id=None):
@@ -162,12 +156,6 @@ def check_helper(from_id=None):
 def get_vk_users():
     user_ids = request.args.get("user_ids")
     return jsonify(items=vk.users.get(user_ids=user_ids, fields="photo_100"))
-
-
-@app.route('/methods/groups_is_member/<int:group_id>')
-@auth_wrap
-def groups_is_member(group_id=None, from_id=None):
-    return jsonify(bool(vk.groups.isMember(group_id=group_id, user_id=from_id)["member"]))
 
 
 @app.route('/checkblack/')

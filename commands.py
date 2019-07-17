@@ -187,17 +187,6 @@ def blist(chat_id, **kwargs):
         sendmessage_chat(chat_id, f"В списке заблокированных находятся:\n\n{l}")
     else:
         sendmessage_chat(chat_id, "Нет заблокированных пользователей в Вашей конференции")
-            
-
-"""
-@enable_command_with_permission(1)
-def mute(chat_id, from_id, user_ids, args, **kwargs):
-    try:
-        minutes = int(args[0])
-    except:
-        return sendmessage(chat_id, "Аргумент должен быть числовым!!!")
-    ... 
-"""
 
 def check_warn_permission(f):
     @wraps(f)
