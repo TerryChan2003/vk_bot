@@ -934,6 +934,7 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
     db.update_reports(id, "otime", get_time())
     os.chdir("/root/server/tmp")
     l = []
+    photo_js = ""
     for attach in kwargs["attachments"]:
         if attach["type"] == "photo":
             max_p = 0
@@ -945,6 +946,8 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
             photo_js = uploader.photo_messages(photo)[0]
             os.remove(photo)
             l.append(f"photo{photo_js['owner_id']}_{photo_js['id']}")
+    print(l)
+    print(photo_js)
     try:
         sendmessage(i.user_id, "Вопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.text, post, text), attachments=",".join(l))
     except:
