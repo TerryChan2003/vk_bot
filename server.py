@@ -40,7 +40,10 @@ def timing_messages(chat_id, from_id):
     v = tmp_chat_msg[chat_id][from_id]
     print(v)
     if v > msg_limits:
-        sendmessage_chat(2, f"Притормозите базар в конференции {chat_id} пользователь @id{from_id} пишет {v} сообщений в секунду!")
+        sendmessage_chat(2, f"""[ANTI-SPAM] Конференция {chat_id} подозревается в спаме. Сообщений в секунду: {v}, отправители: {get_ref(from_id)}. Дата и время: {get_time()}
+Информация о беседе:
+Название: {db.get_title(chat_id)}
+Количество участников: {len(vk_get_chat_members(chat_id))} """)
     del tmp_chat_msg[chat_id][from_id]
 
 
