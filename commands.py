@@ -34,9 +34,9 @@ def check_group_verify_permission(f):
 def msg_to(args, from_id, text_args, chat_id, **kwargs):
     try:
         for _ in range(int(args[1])):
-            sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id)} с текстом: {text_args[0]}")
+            sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id) + 1} с текстом: {text_args[0]}")
     except:
-        sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id)} с текстом: {text_args[0]}")
+        sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id) + 1} с текстом: {text_args[0]}")
     sendmessage_chat(chat_id, f"Сообщение успешно отправлено")
 
 @enable_command_with_permission(3)

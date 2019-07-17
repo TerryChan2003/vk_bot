@@ -24,6 +24,7 @@ import importlib
 tmp_greet = {}
 tmp_chat_msg = {}
 msg_limits = 2
+warnings_spam = {}
 
 
 def timing_greet():
@@ -37,13 +38,24 @@ def timing_greet():
 def timing_messages(chat_id, from_id):
     time.sleep(1)
     global tmp_chat_msg
+    global warnings_spam
     v = tmp_chat_msg[chat_id][from_id]
-    print(v)
     if v > msg_limits:
         sendmessage_chat(2, f"""[ANTI-SPAM] Конференция {chat_id} подозревается в спаме. Сообщений в секунду: {v}, отправители: {get_ref(from_id)}. Дата и время: {get_time()}
 Информация о беседе:
 Название: {db.get_title(chat_id)}
 Количество участников: {len(vk_get_chat_members(chat_id))} """)
+        if chat_id in warnings_spam:
+            if from_id in warnings_spam[chat_id]:
+                warnings_spam[chat_id][from_id] += 1
+            else:
+                warnings_spam[chat_id][from_id] = 1
+        else:
+            warnings_spam[chat_id] = {}
+            warnings_spam[chat_id][from_id] = 1
+        if warnings_spam[chat_id][from_id] >= 3:
+            sendmessage_chat(chat_id, "Мы вынуждены Вас кикнуть из-за спама.")
+            kick_chat_member(chat_id, from_id)
     del tmp_chat_msg[chat_id][from_id]
 
 
