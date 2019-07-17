@@ -40,7 +40,7 @@ def timing_messages(chat_id, from_id):
     v = tmp_chat_msg[chat_id][from_id]
     print(v)
     if v > msg_limits:
-        sendmessage_chat(2, f"Притормозите базар в конференции {k} пользователь @id{from_id} пишет {v} сообщений в секунду!")
+        sendmessage_chat(2, f"Притормозите базар в конференции {chat_id} пользователь @id{from_id} пишет {v} сообщений в секунду!")
     del tmp_chat_msg[chat_id][from_id]
 
 
