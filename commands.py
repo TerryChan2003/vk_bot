@@ -308,6 +308,18 @@ def warn_kick_set(chat_id, args, **kwargs):
 def warn_switch(chat_id, **kwargs):
     sendmessage_chat(chat_id,"Набор команд предупреждения были {}".format("включены" if db.set_warn_enabled(chat_id) else "выключены"))
 
+@enable_command_with_permission(1)
+def whitelist(chat_id, **kwargs):
+    l = []
+    whitelist_l = db.get_whitelist(chat_id)
+    if whitelist_l:
+        for i in db.get_whitelist(chat_id):
+            l.append(f"{get_ref(i)}")
+        for i in group_words(l, "", delimiter="\n"):
+            sendmessage_chat(chat_id, i)
+    else:
+        sendmessage_chat(chat_id, "Никто не находится в белом списке")
+
 @enable_command_with_permission(0)
 @check_warn_permission
 def get_warns(chat_id, **kwargs):
