@@ -18,6 +18,8 @@ default_keyboard.add_line()
 default_keyboard.add_button("Список администраторов", VkKeyboardColor.POSITIVE, payload='"/admins"')
 default_keyboard.add_button("ID беседы", VkKeyboardColor.POSITIVE, payload='"/chatid"')
 default_keyboard.add_line()
+default_keyboard.add_vkapps_button(6973826, groupid, "Открыть сервис", "")
+default_keyboard.add_line()
 default_keyboard.add_button("Скрыть клавиатуру", VkKeyboardColor.DEFAULT, payload='"/clavs"')
 
 def check_group_verify_permission(f):
