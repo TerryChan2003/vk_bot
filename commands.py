@@ -39,9 +39,10 @@ def msg_to(args, from_id, text_args, chat_id, **kwargs):
         if attach["type"] == "photo":
             l.append(get_attachment_photo(attach["photo"]))
     try:
-        for _ in range(int(args[1])):
-            sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id) + 1} с текстом: {text_args[0]}", attachment=",".join(l))
+        n = int(args[1])
     except:
+        n = 1
+    for _ in range(n):
         sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id) + 1} с текстом: {text_args[0]}", attachment=",".join(l))
     sendmessage_chat(chat_id, f"Сообщение успешно отправлено")
 
