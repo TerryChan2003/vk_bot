@@ -138,7 +138,6 @@ def adminses_get(chat_id=None, user_id=None, from_id=None):
 @app.route('/helpers/')
 @app.route('/helpers/<int:user_id>/')
 @auth_wrap
-# @check_helper_wrap
 def get_helpers_list(user_id=None, from_id=None):
     data = {"items": []}
     query = module.Helpers.select(module.Helpers.avatar, module.Helpers.vig, module.Helpers.admin, module.Helpers.reports, module.Helpers.data, module.Helpers.id)
@@ -194,12 +193,20 @@ def get_reports_list(id=None):
     return jsonify(data)
 
 
-@app.route('/report_create/<path:text>')
+@app.route('/report_create')
 @auth_wrap
-def create_report(from_id=None, text=""):
+def create_report(from_id=None):
+    text = request.args.get("text")
     r = db.add_report(from_id, -1, text)
     sendmessage_chat(2, f"Пришёл новый репорт из сервиса: https://vk.com/worldbots#support{secret_key}-report{r.id}")
     return jsonify(items=r.id)
+
+
+@app.route('/group_check')
+@auth_wrap
+def group_check(from_id=None):
+    group_id = request.args.get("group")
+    return jsonify(bool(vk.groups.isMember(user_id=from_id, group_id=group_id)))
 
 
 @app.route('/service/')

@@ -95,13 +95,13 @@ def chat_addadm(chat_id=None, from_id=None):
     return jsonify(data)
 
 
-@bp.route('/rename_title/<path:title>/')
-def rename_chat_title(chat_id=None, from_id=None, title=None):
+@bp.route('/rename_title')
+def rename_chat_title(chat_id=None, from_id=None):
     data = {'items': []}
     if db.get_level_admin(chat_id, from_id) == 0:
-        data["items"].append({
-            "error": "Not permission"})
+        data["items"].append({"error": "Not permission"})
         return jsonify(data)
+    title = request.args.get("title")
     chat = module.Chat_Info.get(chat_id=chat_id)
     chat.title = title
     chat.save()
