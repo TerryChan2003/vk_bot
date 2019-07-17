@@ -704,8 +704,21 @@ def report(chat_id, from_id, **kwargs):
             otv += "{} ".format(str(i.id))
     if otv == "":
         otv = "-"
+    l = []
+    os.chdir("/root/server/tmp")
+    for attach in kwargs["attachments"]:
+        if attach["type"] == "photo":
+            max_p = 0
+            for size in attach["photo"]["sizes"]:
+                if size["width"] * size["height"] > max_p:
+                    url = size["url"]
+                    max_p = size["width"] * size["height"]
+            photo = wget.download(url)
+            photo_js = uploader.photo_messages(photo)[0]
+            os.remove(photo)
+            l.append(f"photo{photo_js['owner_id']}_{photo_js['id']}")
     sendmessage_chat(2, "[REPORTS] Новый REPORT: {}\nID репорта: {}\nОтправил: @id{} ({} {})\
-    \n\nНет ответа: {}".format(text, report.id, from_id, x['first_name'], x['last_name'], otv))
+    \n\nНет ответа: {}".format(text, report.id, from_id, x['first_name'], x['last_name'], otv), attachment=",".join(l))
 
 @enable_command
 def adm(chat_id, from_id, args, **kwargs):
