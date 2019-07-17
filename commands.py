@@ -949,7 +949,7 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
     print(l)
     print(photo_js)
     try:
-        sendmessage(i.user_id, "Вопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.text, post, text), attachments=",".join(l))
+        sendmessage(i.user_id, "Вопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.text, post, text), attachment=",".join(l))
     except:
         sendmessage_chat(i.chat_id, "\nОтправил: @id{}\nВопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.user_id, i.text, post, text))
     sendmessage_chat(chat_id, "Ответ был успешно отправлен")
