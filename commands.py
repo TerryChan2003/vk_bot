@@ -933,12 +933,12 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
     db.update_reports(id, "otext", text)
     db.update_reports(id, "otime", get_time())
     os.chdir("/root/server/tmp")
-    for i in kwargs["attachments"]:
-        print(i)
     try:
         sendmessage(i.user_id, "Вопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.text, post, text))
     except:
         sendmessage_chat(i.chat_id, "\nОтправил: @id{}\nВопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.user_id, i.text, post, text))
+    for i in kwargs["attachments"]:
+        print(i)
     sendmessage_chat(chat_id, "Ответ был успешно отправлен")
 
 
