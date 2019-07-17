@@ -639,7 +639,7 @@ def stats(chat_id, user_ids, from_id, **kwargs):
 
 @enable_command
 def info(chat_id, **kwargs):
-    sendmessage_chat(chat_id, "Помощь по командам - /help\nГруппа ВКонтакте: vk.com/world_bots\nСервис: vk.com/worldbots")
+    sendmessage_chat(chat_id, "Помощь по командам - /help\nГруппа ВКонтакте: vk.com/world_bots\nПриложение: vk.com/worldbots")
 
 
 @enable_command
