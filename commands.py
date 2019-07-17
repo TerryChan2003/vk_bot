@@ -932,11 +932,19 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
     db.update_reports(id, "helper", from_id)
     db.update_reports(id, "otext", text)
     db.update_reports(id, "otime", get_time())
+    os.chdir("/root/server/tmp")
     l = []
     for attach in kwargs["attachments"]:
         if attach["type"] == "photo":
-            photo = attach["photo"]
-            l.append(f"photo{photo['owner_id']}_{photo['id']}_{photo['access_key']}")
+            max_p = 0
+            for size in attach["photo"]["sizes"]:
+                if size["width"] * size["height"] > max_p:
+                    url = size["url"]
+                    max_p = size["width"] * size["height"]
+            photo = wget.download(url)
+            photo_js = uploader.photo_messages(photo)[0]
+            os.remove(photo)
+            l.append(f"photo{photo_js['owner_id']}_{photo_js['id']}")
     try:
         sendmessage(i.user_id, "Вопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.text, post, text), attachment=",".join(l))
     except:
