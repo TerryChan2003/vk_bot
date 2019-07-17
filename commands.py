@@ -655,12 +655,12 @@ def chatid(chat_id, **kwargs):
     sendmessage_chat(chat_id, "ID данного чата - {}".format(chat_id))
 
 @enable_command_with_permission(2)
-def title(chat_id, from_id, **kwargs):
-    text = kwargs['text'].replace('/title', '').strip()
+def title(chat_id, from_id, raw_text, **kwargs):
+    text = raw_text
     if not text:
         sendmessage_chat(chat_id, "Укажите нужное название")
         return
-    if len(text) > 70:
+    if len(text) > 120:
         sendmessage_chat(chat_id, "Название беседы слишком длинное")
         return
     vk.messages.editChat(chat_id = chat_id, title = text)
