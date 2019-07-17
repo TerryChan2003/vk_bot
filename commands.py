@@ -936,7 +936,7 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
     for attach in kwargs["attachments"]:
         if attach["type"] == "photo":
             photo = attach["photo"]
-            l.append(f"photo{photo['owner_id']}_{photo['id']}_{photo['access_key']}")
+            l.append(f"photo-{photo['owner_id']}_{photo['id']}_{photo['access_key']}")
     print(l)
     try:
         sendmessage(i.user_id, "Вопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.text, post, text), attachment=",".join(l))
