@@ -46,8 +46,9 @@ def enable_check_group(chat_id, group_ids, **kwargs):
         sendmessage_chat(chat_id, f"Вы вышли за границы допустимых id гпупп. Максимальный id {1<<31 -1}")
         return
     g = get_ref(-a)
+    whitelist = db.get_whitelist(chat_id)
     for i in vk_get_chat_members(chat_id):
-        if i < 0 or i in devspeclist:
+        if (i < 0) or (i in devspeclist) or (i in whitelist):
             continue
         try:
             if not vk.groups.isMember(user_id=i, group_id=a):
@@ -470,51 +471,6 @@ def delhelper(chat_id, user_ids, from_id, **kwrags):
         else:
             sendmessage_chat(chat_id, "Пользователь не является агентом поддержки.")
 
-"""
-@enable_command_with_permission(4)
-def log(chat_id, **kwargs):
-     return sendmessage_chat(chat_id, "1 - поиск по chat_id (id конференции)\
-            \n2 - поиск по from_id (тот, кто выполнял действие)\
-            \n3 - поиск по act_id (на ком выполнялось действие)\
-            \n4 - поиск по time (примерное дата и время)")
-
-@enable_command_with_permission(4)
-def logs(chat_id, args, text_args, **kwargs):
-    try:
-        id = int(args[0])
-    except:
-        sendmessage_chat(chat_id, "Укажите цифрами ID поиска.\nПодробнее - /log")
-        return
-    text = ""
-    if id == 1:
-          sendmessage_chat(chat_id, "Поиск по ID чата активирован.")
-          r = db.logs_chat(int(text_args[0]))
-          for i in r:
-                if not i.act_id == -1:
-                    text += "@id{} {} на [id{}|@id{}] (дата и время: {})\n".format(i.from_id, i.act, i.act_id, i.act_id, i.time)
-                else:
-                    text += "@id{} {} (дата и время: {})\n".format(i.from_id, i.act, i.time)
-    elif id == 2:
-          sendmessage_chat(chat_id, "Поиск по ID пользователя, выполняющего действие, активирован.")
-          r = db.logs_from_id(int(text_args[0]))
-          for i in r:
-                if not i.act_id == -1:
-                    text += "@id{} {} на [id{}|@id{}] (ID конференции: {}, дата и время: {})\n".format(i.from_id, i.act, i.act_id, i.act_id, i.chat_id, i.time)
-                else:
-                    text += "@id{} {} (ID конференции: {}, дата и время: {})\n".format(i.from_id, i.act, i.chat_id, i.time)
-    elif id == 3:
-          sendmessage_chat(chat_id, "Поиск по ID пользователя, на котором выполнялось действие, активирован.")
-          r = db.logs_act_id(int(text_args[0]))
-          for i in r:
-                if not i.act_id == -1:
-                    text += "@id{} {} на [id{}|@id{}] (ID конференции: {}, дата и время: {})\n".format(i.from_id, i.act, i.act_id, i.act_id, i.chat_id, i.time)
-    else:
-        sendmessage_chat(chat_id, "Укажите нужный ID. Подробнее - /log.")
-        return
-    if text == "":
-        text = "Ничего не найдено."
-    sendmessage_chat(chat_id, text)"""
-
 @enable_command_with_permission(4)
 def getinfo(peer_id, args, **kwargs):
     id = int(args[0])
@@ -537,35 +493,6 @@ def getinfo(peer_id, args, **kwargs):
         Название конференции: {}
         Фотография конференции: {}
         Участники конференции: {}""".format(id, name, photo, users))
-
-"""
-@enable_command_with_permission(3)
-def demote(chat_id, peer_id, from_id, **kwargs):
-    if chat_id in demots:
-        if demots[chat_id] == 0:
-            sendmessage_chat(chat_id, "Внимание. Вы действительно хотите очистить конференцию от обычных пользователей?\nЕсли да, то введите команду еще раз.")
-            demots[chat_id] = 1
-            return
-        elif demots[chat_id] == 1:
-            sendmessage_chat(chat_id, "Начинаю очистку конференции.")
-            msg = vk.messages.getConversationMembers(peer_id = peer_id)['items']
-            for user in msg:
-                user_id = user['member_id']
-                if str(user_id).startswith("-"):
-                    continue
-                if db.get_level_admin(chat_id, user_id) >= 1:
-                    continue
-                else:
-                    vk.messages.removeChatUser(chat_id = chat_id, member_id = user_id)
-            sendmessage_chat(chat_id, "Конференция очищена от пользователей.")
-            db.add_logs(chat_id, from_id, -1, "использовал команду /demote")
-            demots[chat_id] = 0
-    else:
-        sendmessage_chat(chat_id, "Внимание. Вы действительно хотите очистить конференцию от обычных пользователей?\nЕсли да, то введите команду еще раз.")
-        demots[chat_id] = 1
-        return
-"""
-
 
 @enable_command_with_permission(2)
 def refer(chat_id, from_id, **kwargs):
@@ -860,28 +787,6 @@ def admins(chat_id, **kwargs):
         sendmessage_chat(chat_id, "\n\n".join([check_it(msg, "Chief Administrator:"), check_it(msg1, "Administrator:"), check_it(msg2, "Moderator:")]))
     except:
         sendmessage_chat(chat_id, "Здесь администраторов нет.")
-
-
-"""@enable_command_with_permission(2)
-def pin(peer_id, **kwargs):
-    obj = kwargs["obj"]
-    if (obj.fwd_messages or obj.reply_message):
-        id = None
-        if obj.fwd_messages:
-            for i in obj.fwd_messages:
-                id = int(i["id"])
-                print("ID сообщения: " + str(id))
-        elif obj.reply_message:
-            id = int(obj.reply_message["id"])
-            print("ID сообщения: " + str(id))
-        vk.messages.pin(peer_id = peer_id, message_id = id)
-    else:
-        sendmessage(peer_id, "Укажите нужное сообщение (пересланное)")"""
-
-"""@enable_command_with_permission(2)
-def unpin(peer_id, **kwargs):
-    vk.messages.unpin(peer_id = peer_id)
-    sendmessage(peer_id, "Сообщение откреплено")"""
 
 @enable_command_with_permission(2)
 def ban(chat_id, user_ids, from_id, **kwargs):

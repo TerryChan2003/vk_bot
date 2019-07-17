@@ -34,14 +34,13 @@ def timing_greet():
     tmp_greet = {}
 
 
-def timing_messages(chat_id):
+def timing_messages(chat_id, from_id):
     time.sleep(1)
     global tmp_chat_msg
-    k = chat_id
-    v = tmp_chat_msg[k]
+    v = tmp_chat_msg[chat_id][from_id]
     if v > msg_limits:
-        sendmessage_chat(2, f"Притормозите базар в конференции {k} больше {msg_limits} сообщений в секунду!")
-    del tmp_chat_msg[chat_id]
+        sendmessage_chat(2, f"Притормозите базар в конференции {k} пользователь @id{from_id} пишет {v} сообщений в секунду!")
+    del tmp_chat_msg[chat_id][from_id]
 
 
 bot_longpoll = VkBotLongPoll(session, groupid)
@@ -51,10 +50,15 @@ logfile = "log_errors.txt"
 def process_user(from_id, chat_id, text):
     global tmp_chat_msg
     if chat_id in tmp_chat_msg:
-        tmp_chat_msg[chat_id] += 1
+        if from_id in tmp_chat_msg[chat_id]:
+            tmp_chat_msg[chat_id][from_id] += 1
+        else:
+            tmp_chat_msg[chat_id][from_id] = 1
+            Thread(target=timing_messages, args=(chat_id, from_id)).start()
     else:
-        tmp_chat_msg[chat_id] = 1
-        Thread(target=timing_messages, args=(chat_id,)).start()
+        tmp_chat_msg[chat_id] = {}
+        tmp_chat_msg[chat_id][from_id] = 1
+        Thread(target=timing_messages, args=(chat_id, from_id)).start()
     if not db.check_user(from_id):
         if from_id > 0:
             x = users_get(from_id, "sex,photo_200")

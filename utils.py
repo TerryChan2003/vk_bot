@@ -297,6 +297,14 @@ def users_get_gen(user_id, fields=""):
         ...
 
 
+def kick_chat_member(chat_id, member_id):
+    try:
+        vk.messages.removeChatUser(chat_id=chat_id, member_id=member_id)
+        return True
+    except:
+        return False
+
+
 def enable_command_with_permission(permission):
     return lambda x: enable_command(x, permission=permission)
 
