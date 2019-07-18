@@ -16,6 +16,7 @@ from module import *
 from functools import wraps
 import pymorphy2
 from transliterate import translit
+import math
 
 db = DB()
 
@@ -144,6 +145,24 @@ vk_member_can_kick = lambda *x: bool(VkFunction(
     var result = member_ids.indexOf(%(user_id)s);
     var member = members[result];
     if (member.can_kick) {return 1;} else {return 0;};''')(vk, *x))
+vk_send_multiple_messages = lambda *x: VkFunction(
+    args=('kwargs', 'count'),
+    clean_args=('kwargs', 'count'),
+    code='''var i = 0;
+    while (i < %(count)s) {
+        API.messages.send(%(kwargs)s);
+        i=i+1;
+    }''')(vk, *x, )
+
+
+def get_role(from_id):
+    if from_id not in devspeclist:
+        helper = db.get_hstats(from_id)
+        return f"Агент поддержки #{helper.id}"
+    elif from_id in speclist:
+        return f"Спецадминистратор #{speclist.index(from_id)+1}"
+    else:
+        return f"Разработчик #{devlist.index(from_id)+1}"
 
 
 def users_get(user_id, fields="", **kwargs):
@@ -176,6 +195,7 @@ def get_optimized_words(text):
     words = list(set(translit(text, "ru").lower().split()))
     return words
 
+
 def get_attachment_photo(photo):
     os.chdir("/root/server/tmp")
     max_p = 0
@@ -187,6 +207,7 @@ def get_attachment_photo(photo):
     photo_js = uploader.photo_messages(photo)[0]
     os.remove(photo)
     return f"photo{photo_js['owner_id']}_{photo_js['id']}"
+
 
 def groups_get(group_id, fields="", **kwargs):
     try:

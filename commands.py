@@ -42,8 +42,15 @@ def msg_to(args, from_id, text_args, chat_id, **kwargs):
         n = int(args[1])
     except:
         n = 1
-    for _ in range(n):
-        sendmessage_chat(int(args[0]), f"К вам общается разработчик #{devlist.index(from_id) + 1} с текстом: {text_args[0]}", attachment=",".join(l))
+    form = get_role(from_id)
+    params = dict(
+        chat_id=int(args[0]),
+        message=f"К Вам общается {form} с текстом: {text_args[0]}",
+        attachment=",".join(l),
+        random_id=0
+    )
+    for i in range(math.ceil(n/25)):
+        vk_send_multiple_messages(params, min(n-i*25, 25))
     sendmessage_chat(chat_id, f"Сообщение успешно отправлено")
 
 @enable_command_with_permission(3)
@@ -948,7 +955,7 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
     try:
         sendmessage(i.user_id, "Вопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.text, post, text), attachment=",".join(l))
     except:
-        sendmessage_chat(i.chat_id, "\nОтправил: @id{}\nВопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.user_id, i.text, post, text))
+        sendmessage_chat(i.chat_id, "\nОтправил: @id{}\nВопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.user_id, i.text, post, text), attachment=",".join(l))
     sendmessage_chat(chat_id, "Ответ был успешно отправлен")
 
 
