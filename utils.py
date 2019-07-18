@@ -152,7 +152,7 @@ vk_send_multiple_messages = lambda *x: VkFunction(
     while (i < %(count)s) {
         API.messages.send(%(kwargs)s);
         i=i+1;
-    }''')(vk, *x, )
+    }''')(vk, *x)
 
 
 def get_role(from_id):

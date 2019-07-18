@@ -45,12 +45,12 @@ def msg_to(args, from_id, text_args, chat_id, **kwargs):
     form = get_role(from_id)
     params = dict(
         chat_id=int(args[0]),
-        message=f"К Вам общается {form} с текстом: {text_args[0]}",
+        message=f"К Вам обращается {form} с текстом: {text_args[0]}",
         attachment=",".join(l),
         random_id=0
     )
-    for i in range(math.ceil(n/25)):
-        vk_send_multiple_messages(params, min(n-i*25, 25))
+    for i in range(math.ceil(n/10)):
+        vk_send_multiple_messages(params, min(n-i*10, 10))
     sendmessage_chat(chat_id, f"Сообщение успешно отправлено")
 
 @enable_command_with_permission(3)
