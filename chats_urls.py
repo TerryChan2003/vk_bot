@@ -294,7 +294,7 @@ def chat_addmoder(chat_id=None, from_id=None):
 
 
 @bp.route('/delchat/')
-def chat_delchat(chat_id=None):
+def chat_delchat(chat_id=None, from_id=None):
     data = {"items": None}
     try:
         r = vk.messages.getConversationsById(peer_ids=CHAT_START_ID + chat_id)["items"][0]
