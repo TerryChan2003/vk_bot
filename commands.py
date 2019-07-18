@@ -33,6 +33,7 @@ def check_group_verify_permission(f):
     return wrap
         
 @enable_command_with_permission(4)
+@enable_for_helper
 def msg_to(args, from_id, text_args, chat_id, **kwargs):
     l = []
     for attach in kwargs["attachments"]:
