@@ -227,8 +227,10 @@ def get_chats(chat_id=None, from_id=None):
 @app.route('/banlist/')
 @app.route('/banlist/<int:chat_id>/')
 @auth_wrap
-def get_ban_list(chat_id=None):
+def get_ban_list(chat_id=None, from_id=None):
     data = {"items": []}
+    if db.get_level_admin(chat_id, from_id) == 0:
+        return jsonify(error="You not have permission")
     query = module.Ban_List.select().where(module.Ban_List.user_id > 0)
     if chat_id:
         query = query.where(module.Ban_List.chat_id == chat_id)
