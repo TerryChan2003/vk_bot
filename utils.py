@@ -385,9 +385,10 @@ def exit_bot_chat(chat_id):
 
 
 def get_format_time(stime, case="accs"):
-    minutes, seconds = divmod(stime, 60)
+    minutes, seconds = divmod(stime.seconds, 60)
     hours, minutes = divmod(minutes, 60)
     days, hours = divmod(hours, 24)
+    days += stime.days
     weeks, days = divmod(days, 7)
     months, weeks = divmod(weeks, 4)
     years, months = divmod(months, 12)
@@ -398,7 +399,7 @@ def get_format_time(stime, case="accs"):
         if t:
             tmp[k] = f"{t} {time_words[k].inflect({case}).make_agree_with_number(t).word}"
     tmp[-1] = tmp[-1].replace("годов", "лет")
-    return " ".join(list(filter(lambda x: x != "", tmp))[::-1])
+    return ", ".join(list(filter(lambda x: x != "", tmp))[::-1])
 
 
 def error_handler(command, errors, peer_id, **kwargs):

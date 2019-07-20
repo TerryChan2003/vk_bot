@@ -4,6 +4,7 @@ import threading
 import os
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from functools import wraps
+from pprint import pprint
 
 keyboard_help = VkKeyboard()
 keyboard_help.add_button("Помощь по командам", VkKeyboardColor.PRIMARY, payload='"/help"')
@@ -65,6 +66,7 @@ def online(chat_id, **kwargs):
         if "online_app" in i:
             app = vk_s.apps.get(app_id=i["online_app"])['items'][0]
             smile = f"({app['title']})"
+            pprint(app)
         elif "platform" in i["last_seen"]:
             smile = vk_platforms[i["last_seen"]["platform"]]
         else:
@@ -75,7 +77,7 @@ def online(chat_id, **kwargs):
         l.append(f"{i['first_name']} {i['last_name']} - Онлайн {smile}")
     current_datetime = datetime.datetime.now()
     for i in users:
-        i["last_seen"]["time"] = (current_datetime - datetime.datetime.fromtimestamp(i["last_seen"]["time"])).seconds
+        i["last_seen"]["time"] = current_datetime - datetime.datetime.fromtimestamp(i["last_seen"]["time"])
     for i in sorted(users, key=lambda x: x['last_seen']['time']):
         smile = get_smile(i)
         l.append(f"{i['first_name']} {i['last_name']} - был{sex_str[i['sex']]} в сети {get_format_time(i['last_seen']['time'])} назад {smile}")
