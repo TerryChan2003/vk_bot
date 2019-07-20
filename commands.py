@@ -5,6 +5,23 @@ import os
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from functools import wraps
 
+sex_str = [
+    "о",
+    "а",
+    ""
+]
+
+vk_platforms = {
+    1: "&#128241; (m.vk.com)",
+    2: "&#128241; (iPhone)",
+    3: "&#128241; (iPad)",
+    4: "&#128241; (Android)",
+    5: "&#128241; (Windows Phone)",
+    6: "&#128187; (Windows 10)",
+    7: "&#128187; (vk.com)"
+}
+
+
 keyboard_help = VkKeyboard()
 keyboard_help.add_button("Помощь по командам", VkKeyboardColor.PRIMARY, payload='"/help"')
 keyboard_help.add_line()
@@ -53,6 +70,24 @@ def msg_to(args, from_id, text_args, chat_id, **kwargs):
     for i in range(math.ceil(n/10)):
         vk_send_multiple_messages(params, min(n-i*10, 10))
     sendmessage_chat(chat_id, f"Сообщение успешно отправлено")
+
+@enable_command_with_permission(1)
+def online(chat_id, **kwargs):
+    member_ids = list(filter(lambda x: x > 0, vk_get_chat_members(chat_id)))
+    users = vk.users.get(user_ids=member_ids, fields="online,last_seen,sex")
+    users_online = list(filter(lambda x: x["online"], users))
+    users = list(filter(lambda x: x not in users_online, users))
+    l = []
+    for i in users_online:
+        smile = vk_platforms[i["last_seen"]["platform"]]
+        l.append(f"{i['first_name']} {i['last_name']} - Онлайн {smile}")
+    for i in sorted(users, key=lambda x: x['last_seen']['time']):
+        smile = vk_platforms[i["last_seen"]["platform"]]
+        l.append(f"{i['first_name']} {i['last_name']} - был{sex_str[i['sex']]} в сети {get_format_time(i['last_seen']['time'])} назад {smile}")
+    for i in group_words(l, "", delimiter="\n"):
+        sendmessage_chat(chat_id, i)
+
+
 
 @enable_command_with_permission(3)
 def enable_check_group(chat_id, group_ids, **kwargs):

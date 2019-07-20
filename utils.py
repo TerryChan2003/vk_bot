@@ -144,7 +144,7 @@ vk_member_can_kick = lambda *x: bool(VkFunction(
     var member_ids = members@.member_id;
     var result = member_ids.indexOf(%(user_id)s);
     var member = members[result];
-    if (member.can_kick) {return 1;} else {return 0;};''')(vk, *x))
+    if (member.can_kick){return 1;} else{return 0;}; ''')(vk, *x))
 vk_send_multiple_messages = lambda *x: VkFunction(
     args=('kwargs', 'count'),
     clean_args=('kwargs', 'count'),
@@ -277,10 +277,10 @@ def parseArgs(args, fwd_messages, command, chat_id, reply_message=None, **kwargs
                     if v:
                         user_ids.add(v)
             args = re.sub(pattern_user_id, "", args).strip()
-        tmp["group_ids"] = list(filter(
-            lambda x: not (x == "" or int(x) == 0 or (int(x) == 173243972 and command != "/enable_check_group")), group_ids))
-        tmp["user_ids"] = list(filter(
-            lambda x: not (x == "" or int(x) == 0 or (int(x) == -173243972 and command != "/enable_check_group")), user_ids))
+
+        def filter_func(x): return not (x == "" or int(x) == 0 or (int(x) == 173243972 and command != "/enable_check_group"))
+        tmp["group_ids"] = list(filter(filter_func, group_ids))
+        tmp["user_ids"] = list(filter(filter_func, user_ids))
     if args:
         tmp["args"] = list(filter(lambda x: x.isdigit(), args.split()))
     if args and "user_ids" in requirements[command]:
@@ -353,6 +353,77 @@ def sendmessage_chat(chat_id, message, **kwargs):
 
 def exit_bot_chat(chat_id):
     vk.messages.removeChatUser(chat_id=chat_id, member_id=-groupid)
+
+
+def get_format_time(stime):
+    stime = (datetime.datetime.now() - datetime.datetime.fromtimestamp(stime)).seconds
+    minutes, seconds = divmod(stime, 60)
+    hours, minutes = divmod(minutes, 60)
+    days, hours = divmod(hours, 24)
+    weeks, days = divmod(days, 7)
+    months, weeks = divmod(weeks, 4)
+    years, months = divmod(months, 12)
+    tmp = ""
+    if seconds:
+        if seconds > 20 or 10 > seconds:
+            if seconds % 10 == 1:
+                tmp = f"{seconds} секунду"
+            elif 1 < seconds % 10 < 5:
+                tmp = f"{seconds} секунды"
+            else:
+                tmp = f"{seconds} секунд"
+        else:
+            tmp = f"{seconds} секунд"
+    if minutes:
+        if minutes > 20 or 10 > minutes:
+            if minutes % 10 == 1:
+                tmp = f"{minutes} минуту " + tmp
+            elif 1 < minutes % 10 < 5:
+                tmp = f"{minutes} минуты " + tmp
+            else:
+                tmp = f"{minutes} минут " + tmp
+        else:
+            tmp = f"{minutes} минут " + tmp
+    if hours:
+        if hours > 20 or 10 > hours:
+            if hours % 10 == 1:
+                tmp = f"{hours} час " + tmp
+            elif 1 < hours % 10 < 5:
+                tmp = f"{hours} часа " + tmp
+            else:
+                tmp = f"{hours} часов " + tmp
+        else:
+            tmp = f"{hours} часов " + tmp
+    if days:
+        if days == 1:
+            tmp = f"{days} день " + tmp
+        elif 1 < days < 5:
+            tmp = f"{days} дня " + tmp
+        else:
+            tmp = f"{days} дней " + tmp
+    if weeks:
+        if weeks == 1:
+            tmp = f"{weeks} неделя " + tmp
+        else:
+            tmp = f"{weeks} недели " + tmp
+    if months:
+        if months == 1:
+            tmp = f"{months} месяц " + tmp
+        elif 1 < months < 5:
+            tmp = f"{months} месяца " + tmp
+        else:
+            tmp = f"{months} месяцев " + tmp
+    if years:
+        if years % 100 > 20 or 10 > years % 100:
+            if years % 10 == 1:
+                tmp = f"{years} год " + tmp
+            elif 1 < years % 10 < 5:
+                tmp = f"{years} года " + tmp
+            else:
+                tmp = f"{years} лет" + tmp
+        else:
+            tmp = f"{years} лет" + tmp
+    return tmp
 
 
 def error_handler(command, errors, peer_id, **kwargs):
