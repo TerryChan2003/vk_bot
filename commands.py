@@ -737,13 +737,10 @@ def title(chat_id, from_id, raw_text, **kwargs):
         db.update_title(chat_id, text)
 
 @enable_command
-def report(chat_id, from_id, **kwargs):
-    text = kwargs["text"].replace('/report', '').strip()
+def report(chat_id, from_id, raw_text, **kwargs):
+    text = raw_text
     if db.check_muted_report(from_id):
         sendmessage_chat(chat_id, "Данная команда не доступна для вас, т. к. были нарушены правила обращения в поддержку")
-        return
-    if not text:
-        sendmessage_chat(chat_id, "Напишите текст Вашего обращения в поддержку")
         return
     x = users_get(from_id)
     report = Reports(user_id = from_id, chat_id = chat_id, text = text)
@@ -763,8 +760,8 @@ def report(chat_id, from_id, **kwargs):
     \n\nНет ответа: {} ".format(text, report.id, from_id, x['first_name'], x['last_name'], otv), attachment=", ".join(l))
 
 @enable_command
-def rep(chat_id, from_id, **kwargs):
-    report(chat_id, from_id, **kwargs)
+def rep(chat_id, from_id, raw_text, **kwargs):
+    report(chat_id, from_id, raw_text, **kwargs)
 
 @enable_command
 def adm(chat_id, from_id, args, **kwargs):
