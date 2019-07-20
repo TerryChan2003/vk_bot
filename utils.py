@@ -141,6 +141,7 @@ requirements = {}
 client_secret = data["client_secret"]
 token = data["token"]
 service_token = data["service_token"]
+vk_s = VkApi(token=service_token).get_api()
 secret_key = data["secret_key"]
 groupid = data["group_id"]
 devlist = data["devlist"]

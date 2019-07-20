@@ -61,20 +61,23 @@ def online(chat_id, **kwargs):
     users_online = list(filter(lambda x: x["online"], users))
     users = list(filter(lambda x: x not in users_online, users))
     l = []
-    for i in users_online:
-        try:
+    def get_smile(i):
+        if "online_app" in i:
+            app = vk_s.apps.get(app_id=i["online_app"])['items'][0]
+            smile = f"({app['title']})"
+        elif "platform" in i["last_seen"]:
             smile = vk_platforms[i["last_seen"]["platform"]]
-        except:
+        else:
             smile = "(None)"
+        return smile
+    for i in users_online:
+        smile = get_smile(i)
         l.append(f"{i['first_name']} {i['last_name']} - Онлайн {smile}")
     current_datetime = datetime.datetime.now()
     for i in users:
         i["last_seen"]["time"] = (current_datetime - datetime.datetime.fromtimestamp(i["last_seen"]["time"])).seconds
     for i in sorted(users, key=lambda x: x['last_seen']['time']):
-        try:
-            smile = vk_platforms[i["last_seen"]["platform"]]
-        except:
-            smile = "(None)"
+        smile = get_smile(i)
         l.append(f"{i['first_name']} {i['last_name']} - был{sex_str[i['sex']]} в сети {get_format_time(i['last_seen']['time'])} назад {smile}")
     for i in group_words(l, "", delimiter="\n"):
         sendmessage_chat(chat_id, i)
