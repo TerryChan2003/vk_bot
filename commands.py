@@ -74,7 +74,7 @@ def msg_to(args, from_id, text_args, chat_id, **kwargs):
 @enable_command_with_permission(1)
 def online(chat_id, **kwargs):
     member_ids = list(filter(lambda x: x > 0, vk_get_chat_members(chat_id)))
-    users = vk.users.get(user_ids=member_ids, fields="online,last_seen,sex")
+    users = list(filter(lambda x: "last_seen" in x, vk.users.get(user_ids=member_ids, fields="online,last_seen,sex")))
     users_online = list(filter(lambda x: x["online"], users))
     users = list(filter(lambda x: x not in users_online, users))
     l = []
@@ -83,19 +83,13 @@ def online(chat_id, **kwargs):
             smile = vk_platforms[i["last_seen"]["platform"]]
         except:
             smile = "(None)"
-        try:
-            l.append(f"{i['first_name']} {i['last_name']} - Онлайн {smile}")
-        except Exception as e:
-            print(e)
+        l.append(f"{i['first_name']} {i['last_name']} - Онлайн {smile}")
     for i in sorted(users, key=lambda x: x['last_seen']['time']):
         try:
             smile = vk_platforms[i["last_seen"]["platform"]]
         except:
             smile = "(None)"
-        try:
-            l.append(f"{i['first_name']} {i['last_name']} - был{sex_str[i['sex']]} в сети {get_format_time(i['last_seen']['time'])} назад {smile}")
-        except Exception as e:
-            print(e)
+        l.append(f"{i['first_name']} {i['last_name']} - был{sex_str[i['sex']]} в сети {get_format_time(i['last_seen']['time'])} назад {smile}")
     for i in group_words(l, "", delimiter="\n"):
         sendmessage_chat(chat_id, i)
 
