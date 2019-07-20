@@ -181,7 +181,17 @@ vk_send_multiple_messages = lambda *x: VkFunction(
     while (i < %(count)s) {
         API.messages.send(%(kwargs)s);
         i=i+1;
-    }''')(vk, *x)
+    } ''')(vk, *x)
+vk_send_multiple_chats = lambda *x: VkFunction(
+    args=('chats', 'kwargs'),
+    clean_args=('chats', 'kwargs'),
+    code='''var i = 0;
+    var params = %(kwargs)s;
+    while (i < %(chats)s.length) {
+        params.chat_id = %(chats)s[i];
+        API.messages.send(params);
+        i=i+1;
+    } ''')(vk, *x)
 
 
 def get_role(from_id):

@@ -731,7 +731,7 @@ def title(chat_id, from_id, raw_text, **kwargs):
         db.update_title(chat_id, text)
 
 @enable_command
-def rep(chat_id, from_id, **kwargs):
+def report(chat_id, from_id, **kwargs):
     text = kwargs["text"].replace('/report', '').strip()
     if db.check_muted_report(from_id):
         sendmessage_chat(chat_id, "Данная команда не доступна для вас, т. к. были нарушены правила обращения в поддержку")
@@ -754,7 +754,11 @@ def rep(chat_id, from_id, **kwargs):
         if attach["type"] == "photo":
             l.append(get_attachment_photo(attach["photo"]))
     sendmessage_chat(2, "[REPORTS] Новый REPORT: {}\nID репорта: {}\nОтправил: @id{} ({} {})\
-    \n\nНет ответа: {}".format(text, report.id, from_id, x['first_name'], x['last_name'], otv), attachment=",".join(l))
+    \n\nНет ответа: {} ".format(text, report.id, from_id, x['first_name'], x['last_name'], otv), attachment=", ".join(l))
+
+@enable_command
+def rep(chat_id, from_id, **kwargs):
+    report(chat_id, from_id, **kwargs)
 
 @enable_command
 def adm(chat_id, from_id, args, **kwargs):
@@ -993,18 +997,23 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
 
 
 @enable_command_with_permission(5)
-def msg(chat_id, text_args, from_id, **kwargs):
+def msg(chat_id, raw_text, from_id, **kwargs):
     sendmessage_chat(chat_id, "Началась рассылка сообщений!")
     l = []
     for attach in kwargs["attachments"]:
         if attach["type"] == "photo":
             l.append(get_attachment_photo(attach["photo"]))
+    chat_list = []
     for i in db.get_chat_infos():
         if i.chat_id != chat_id:
-            try:
-                sendmessage_chat(i.chat_id, text_args[0], attachment=",".join(l))
-            except Exception as e:
-                sendmessage_chat(chat_id, "Не удалось отправить вызвало ошибку: " + str(e))
+            chat_list.append(i.chat_id)
+    params = dict(
+        message=raw_text,
+        attachment=",".join(l),
+        random_id=0
+    )
+    for i in range(math.ceil(len(chat_list) / 25)):
+        vk_send_multiple_chats(chat_list[25*i:min(25*(i+1), len(chat_list))], params)
     sendmessage_chat(chat_id, "Рассылка чата закончилась!")
 
 
