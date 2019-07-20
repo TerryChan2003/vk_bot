@@ -98,9 +98,6 @@ def chat_addadm(chat_id=None, from_id=None):
 @bp.route('/rename_title')
 def rename_chat_title(chat_id=None, from_id=None):
     data = {'items': []}
-    if db.get_level_admin(chat_id, from_id) == 0:
-        data["items"].append({"error": "Not permission"})
-        return jsonify(data)
     title = request.args.get("title")
     chat = module.Chat_Info.get(chat_id=chat_id)
     chat.title = title
@@ -115,8 +112,6 @@ def rename_chat_title(chat_id=None, from_id=None):
 @bp.route('/kick/')
 def chat_kick(chat_id=None, from_id=None):
     data = {"items": []}
-    if db.get_level_admin(chat_id, from_id) == 0:
-        return jsonify(error="error: not permission")
     user_ids = request.args.get("user_ids")
     if not user_ids:
         return jsonify(error="Parametr user_ids is not found!")
@@ -208,8 +203,6 @@ def chat_ban(chat_id=None, from_id=None):
 @bp.route('/unban/')
 def chat_unban(chat_id=None, from_id=None):
     data = {"items": []}
-    if db.get_level_admin(chat_id, from_id) == 0:
-        return jsonify(error="error: not permission")
     user_ids = request.args.get("user_ids")
     if not user_ids:
         return jsonify(error="Parametr user_ids is not found!")
@@ -222,8 +215,6 @@ def chat_unban(chat_id=None, from_id=None):
 @bp.route('/deladmin/')
 def chat_deladmin(chat_id=None, from_id=None):
     data = {"items": []}
-    if db.get_level_admin(chat_id, from_id) == 0:
-        return jsonify(error="error: not permission")
     user_ids = request.args.get("user_ids")
     if not user_ids:
         return jsonify(error="Parametr user_ids is not found!")
@@ -250,8 +241,6 @@ def chat_deladmin(chat_id=None, from_id=None):
 @bp.route('/setakick/<int:akick>/')
 def chat_setakick(chat_id=None, from_id=None, akick=None):
     data = {"items": []}
-    if db.get_level_admin(chat_id, from_id) == 0:
-        return jsonify(error="error: not permission")
     try:
         db.set_akick(chat_id, akick)
         data["items"].append({
@@ -307,3 +296,34 @@ def chat_delchat(chat_id=None, from_id=None):
             ...
         data["items"] = "+"
         return jsonify(data)
+
+
+@bp.route('/banlist')
+def get_ban_list(chat_id=None, from_id=None):
+    data = {"items": []}
+    query = module.Ban_List.select().where(module.Ban_List.user_id > 0).where(module.Ban_List.chat_id == chat_id)
+    for user in query.dicts():
+        data["items"].append(user)
+    data["response"] = ",".join(map(str, [i.user_id for i in query]))
+    return jsonify(data)
+
+
+@bp.route('/chat_users')
+def get_chat_users(chat_id=None, from_id=None):
+    data = {"items": []}
+    try:
+        r = vk.messages.getConversationMembers(peer_id=CHAT_START_ID + chat_id)["profiles"]
+        for i in r:
+            lvl = db.get_level_admin(chat_id, i["id"])
+            i["level"] = lvl
+            data["items"].append(i)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify(error=str(e))
+
+
+@bp.route('/whitelist')
+def get_white_list(chat_id=None, from_id=None):
+    data = {"items": []}
+    data["items"] = db.get_whitelist(chat_id)
+    return jsonify(data)
