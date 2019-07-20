@@ -356,7 +356,6 @@ def exit_bot_chat(chat_id):
 
 
 def get_format_time(stime):
-    stime = (datetime.datetime.now() - datetime.datetime.fromtimestamp(stime)).seconds
     minutes, seconds = divmod(stime, 60)
     hours, minutes = divmod(minutes, 60)
     days, hours = divmod(hours, 24)

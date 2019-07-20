@@ -84,6 +84,9 @@ def online(chat_id, **kwargs):
         except:
             smile = "(None)"
         l.append(f"{i['first_name']} {i['last_name']} - Онлайн {smile}")
+    current_datetime = datetime.datetime.now()
+    for i in users:
+        i["last_seen"]["time"] = (current_datetime - datetime.datetime.fromtimestamp(i["last_seen"]["time"])).seconds
     for i in sorted(users, key=lambda x: x['last_seen']['time']):
         try:
             smile = vk_platforms[i["last_seen"]["platform"]]
