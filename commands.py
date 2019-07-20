@@ -1099,7 +1099,7 @@ def checkblack(chat_id, **kwargs):
 @enable_command_with_permission(5)
 def check_chats(chat_id, **kwargs):
     sendmessage_chat(chat_id, "Начинаю сканировать")
-    for i in Chat_Info.select():
+    def func(i):
         i = i.chat_id
         try:
             r = vk.messages.getConversationsById(peer_ids=CHAT_START_ID + i)["items"][0]
@@ -1114,11 +1114,13 @@ def check_chats(chat_id, **kwargs):
             if str(e) == "list index out of range":
                 Chat_Info.get(chat_id=i).delete_instance()
                 Admin_List.delete().where(Admin_List.chat_id == i).execute()
-                continue
+                return
             elif str(e) == "duplicate key value violates unique constraint \"chat_info_chat_id\"":
-                continue
+                return
             print(str(e).split("\n")[0])
-            continue
+    for i in Chat_Info.select():
+        threading.Thread(target=func, args=(i,)).start()
+        
         
 
 @enable_command_with_permission(2)
