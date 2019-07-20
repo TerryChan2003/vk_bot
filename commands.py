@@ -95,7 +95,10 @@ def enable_check_group(chat_id, group_ids, **kwargs):
     g = get_ref(-a)
     whitelist = db.get_whitelist(chat_id)
     for i in vk_get_chat_members(chat_id):
-        if (i < 0) or (i in devspeclist) or (i in whitelist):
+        if whitelist:
+            if i in whitelist:
+                continue
+        if (i < 0) or (i in devspeclist):
             continue
         try:
             if not vk.groups.isMember(user_id=i, group_id=a):
