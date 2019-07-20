@@ -731,7 +731,7 @@ def title(chat_id, from_id, raw_text, **kwargs):
         db.update_title(chat_id, text)
 
 @enable_command
-def report(chat_id, from_id, **kwargs):
+def rep(chat_id, from_id, **kwargs):
     text = kwargs["text"].replace('/report', '').strip()
     if db.check_muted_report(from_id):
         sendmessage_chat(chat_id, "Данная команда не доступна для вас, т. к. были нарушены правила обращения в поддержку")
