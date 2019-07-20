@@ -79,10 +79,16 @@ def online(chat_id, **kwargs):
     users = list(filter(lambda x: x not in users_online, users))
     l = []
     for i in users_online:
-        smile = vk_platforms[i["last_seen"]["platform"]]
+        try:
+            smile = vk_platforms[i["last_seen"]["platform"]]
+        except:
+            smile = "(Хз какая платформа)"
         l.append(f"{i['first_name']} {i['last_name']} - Онлайн {smile}")
     for i in sorted(users, key=lambda x: x['last_seen']['time']):
-        smile = vk_platforms[i["last_seen"]["platform"]]
+        try:
+            smile = vk_platforms[i["last_seen"]["platform"]]
+        except:
+            smile = "(Хз какая платформа)"
         l.append(f"{i['first_name']} {i['last_name']} - был{sex_str[i['sex']]} в сети {get_format_time(i['last_seen']['time'])} назад {smile}")
     for i in group_words(l, "", delimiter="\n"):
         sendmessage_chat(chat_id, i)
