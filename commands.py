@@ -101,14 +101,14 @@ def enable_check_group(chat_id, group_ids, **kwargs):
             if not vk.groups.isMember(user_id=i, group_id=a):
                 if vk_member_can_kick(chat_id, i):
                     r = get_ref(i)
-                    sendmessage_chat(chat_id, f"{r} не находится в данной группе {g}")
+                    sendmessage_chat(chat_id, f"{r} не находится в группе {g}")
                     vk.messages.removeChatUser(chat_id=chat_id, user_id=i)
                 else:
                     r = get_ref(i, "gen")
                     sendmessage_chat(chat_id, f"Не удается кикнуть {r} он не находится в группе {g}")
         except Exception as e:
             if str(e) == "[15] Access denied: no access to this group":
-                sendmessage_chat(chat_id, f"Нет доступа для данной группы {g}")
+                sendmessage_chat(chat_id, f"Нет доступа для группы {g}")
                 return
     db.set_chat_group_check(chat_id, a)
     sendmessage_chat(chat_id, f"Вы установили для чата доступ исключительно для участников группы {g}")
@@ -270,7 +270,7 @@ def delwhite(chat_id, user_ids, **kwargs):
                 if not vk.groups.isMember(user_id=i, group_id=a):
                     if vk_member_can_kick(chat_id, i):
                         r = get_ref(i)
-                        sendmessage_chat(chat_id, f"{r} не находится в данной группе {g}")
+                        sendmessage_chat(chat_id, f"{r} не находится в группе {g}")
                         vk.messages.removeChatUser(chat_id=chat_id, user_id=i)
                     else:
                         r = get_ref(i, "gen")
