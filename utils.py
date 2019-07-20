@@ -429,6 +429,11 @@ def error_handler(command, errors, peer_id, **kwargs):
             sendmessage(peer_id, "Укажите количество предупреждений.")
         else:
             sendmessage(peer_id, "Требуется числовой аргумент! Возможно это ID беседы?")
+    elif "raw_text" in errors:
+        if command in ["/rep", "/report"]:
+            sendmessage(peer_id, "Напишите текст Вашего обращения в поддержку")
+        else:
+            sendmessage(peer_id, "Напишите текст для этого")
     else:
         sendmessage(peer_id, "Не хватает аргументов: " + str(errors))
 
