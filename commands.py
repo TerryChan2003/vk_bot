@@ -72,7 +72,8 @@ def online(chat_id, **kwargs):
             app = vk_s.apps.get(app_id=i["online_app"])['items'][0]
             if app['title'] not in ["iPhone", "Android"]:
                 tmp += f" (Приложение {app['title']})"
-            pprint("Приложение", i["online_app"], app)
+            print("Приложение", i["online_app"])
+            pprint(app)
         return tmp
     for i in users_online:
         smile = get_smile(i)
