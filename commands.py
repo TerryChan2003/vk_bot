@@ -5,23 +5,6 @@ import os
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from functools import wraps
 
-sex_str = [
-    "о",
-    "а",
-    ""
-]
-
-vk_platforms = {
-    1: "&#128241; (m.vk.com)",
-    2: "&#128241; (iPhone)",
-    3: "&#128241; (iPad)",
-    4: "&#128241; (Android)",
-    5: "&#128241; (Windows Phone)",
-    6: "&#128187; (Windows 10)",
-    7: "&#128187; (vk.com)"
-}
-
-
 keyboard_help = VkKeyboard()
 keyboard_help.add_button("Помощь по командам", VkKeyboardColor.PRIMARY, payload='"/help"')
 keyboard_help.add_line()
@@ -71,7 +54,7 @@ def msg_to(args, from_id, text_args, chat_id, **kwargs):
         vk_send_multiple_messages(params, min(n-i*10, 10))
     sendmessage_chat(chat_id, f"Сообщение успешно отправлено")
 
-@enable_command_with_permission(1)
+@enable_command
 def online(chat_id, **kwargs):
     member_ids = list(filter(lambda x: x > 0, vk_get_chat_members(chat_id)))
     users = list(filter(lambda x: "last_seen" in x, vk.users.get(user_ids=member_ids, fields="online,last_seen,sex")))

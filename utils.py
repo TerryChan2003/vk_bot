@@ -1,3 +1,5 @@
+import math
+from transliterate import translit
 from vk_api.bot_longpoll import CHAT_START_ID
 from vk_api.utils import get_random_id
 from vk_api import VkApi
@@ -15,8 +17,7 @@ import datetime
 from module import *
 from functools import wraps
 import pymorphy2
-from transliterate import translit
-import math
+morph = pymorphy2.MorphAnalyzer()
 
 db = DB()
 
@@ -49,6 +50,32 @@ lvl_name = {
     4: "Special Administrator",
     5: "Developer"
 }
+
+sex_str = [
+    "о",
+    "а",
+    ""
+]
+
+vk_platforms = {
+    1: "&#128241; (m.vk.com)",
+    2: "&#128241; (iPhone)",
+    3: "&#128241; (iPad)",
+    4: "&#128241; (Android)",
+    5: "&#128241; (Windows Phone)",
+    6: "&#128187; (Windows 10)",
+    7: "&#128187; (vk.com)"
+}
+
+time_words = [
+    morph.parse("секунда")[0],
+    morph.parse("минута")[0],
+    morph.parse("час")[0],
+    morph.parse("день")[0],
+    morph.parse("неделя")[0],
+    morph.parse("месяц")[0],
+    morph.parse("год")[0]
+]
 
 # Для обычных пользователей
 help_list = ["""/help - Показать эту информацию
@@ -107,7 +134,6 @@ help_list += [help_list[-1] + "\n" + """/get_commands - Узнать все вк
 /setrep - Обновить репорты агента - поддержки"""]
 
 permissions = [[], [], [], [], [], []]
-morph = pymorphy2.MorphAnalyzer()
 helper_permissions = []
 requirements = {}
 client_secret = data["client_secret"]
@@ -355,74 +381,21 @@ def exit_bot_chat(chat_id):
     vk.messages.removeChatUser(chat_id=chat_id, member_id=-groupid)
 
 
-def get_format_time(stime):
+def get_format_time(stime, case="accs"):
     minutes, seconds = divmod(stime, 60)
     hours, minutes = divmod(minutes, 60)
     days, hours = divmod(hours, 24)
     weeks, days = divmod(days, 7)
     months, weeks = divmod(weeks, 4)
     years, months = divmod(months, 12)
-    tmp = ""
-    if seconds:
-        if seconds > 20 or 10 > seconds:
-            if seconds % 10 == 1:
-                tmp = f"{seconds} секунду"
-            elif 1 < seconds % 10 < 5:
-                tmp = f"{seconds} секунды"
-            else:
-                tmp = f"{seconds} секунд"
-        else:
-            tmp = f"{seconds} секунд"
-    if minutes:
-        if minutes > 20 or 10 > minutes:
-            if minutes % 10 == 1:
-                tmp = f"{minutes} минуту " + tmp
-            elif 1 < minutes % 10 < 5:
-                tmp = f"{minutes} минуты " + tmp
-            else:
-                tmp = f"{minutes} минут " + tmp
-        else:
-            tmp = f"{minutes} минут " + tmp
-    if hours:
-        if hours > 20 or 10 > hours:
-            if hours % 10 == 1:
-                tmp = f"{hours} час " + tmp
-            elif 1 < hours % 10 < 5:
-                tmp = f"{hours} часа " + tmp
-            else:
-                tmp = f"{hours} часов " + tmp
-        else:
-            tmp = f"{hours} часов " + tmp
-    if days:
-        if days == 1:
-            tmp = f"{days} день " + tmp
-        elif 1 < days < 5:
-            tmp = f"{days} дня " + tmp
-        else:
-            tmp = f"{days} дней " + tmp
-    if weeks:
-        if weeks == 1:
-            tmp = f"{weeks} неделя " + tmp
-        else:
-            tmp = f"{weeks} недели " + tmp
-    if months:
-        if months == 1:
-            tmp = f"{months} месяц " + tmp
-        elif 1 < months < 5:
-            tmp = f"{months} месяца " + tmp
-        else:
-            tmp = f"{months} месяцев " + tmp
-    if years:
-        if years % 100 > 20 or 10 > years % 100:
-            if years % 10 == 1:
-                tmp = f"{years} год " + tmp
-            elif 1 < years % 10 < 5:
-                tmp = f"{years} года " + tmp
-            else:
-                tmp = f"{years} лет" + tmp
-        else:
-            tmp = f"{years} лет" + tmp
-    return tmp
+    times = [seconds, minutes, hours, days, weeks, months, years]
+    tmp = ["", "", "", "", "", "", ""]
+    for k in range(len(tmp)):
+        t = times[k]
+        if t:
+            tmp[k] = f"{t} {time_words[k].inflect({case}).make_agree_with_number(t).word}"
+    tmp[-1] = tmp[-1].replace("годов", "лет")
+    return " ".join(list(filter(lambda x: x != "", tmp))[::-1])
 
 
 def error_handler(command, errors, peer_id, **kwargs):
