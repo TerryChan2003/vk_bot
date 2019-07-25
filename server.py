@@ -236,7 +236,7 @@ def event_handler(event):
         if event.obj.action and event.obj.action["type"] == "chat_invite_user" and event.obj.action["member_id"] == -groupid:
             sendmessage(event.obj.peer_id, "Здравствуйте!\n\nВы добавили меня в Вашу беседу. Для того, чтобы я начал работать, сделайте следующее:\
             \n1. Выдайте мне права администратора в данной беседе.\n2. Пропишите команду /getadmin.")
-        if event.obj.peer_id > 0 and not (db.check_chat(event.obj.peer_id - CHAT_START_ID) or str(event.obj.text).startswith("/getadmin")):
+        if event.obj.peer_id > 2000000000 and not (db.check_chat(event.obj.peer_id - CHAT_START_ID) or str(event.obj.text).startswith("/getadmin") or str(event.obj.text).startswith("/report")):
             print(f"Мошеники!!!!!! {event.obj.peer_id - CHAT_START_ID} {event.obj.from_id} {event.raw}")
             return
         print(event)
