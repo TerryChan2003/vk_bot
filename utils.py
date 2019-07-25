@@ -146,6 +146,7 @@ secret_key = data["secret_key"]
 groupid = data["group_id"]
 devlist = data["devlist"]
 speclist = data["speclist"]
+tmp_dir = data["tmp_dir"]
 devspeclist = devlist + speclist
 pattern_user_id = r"\[id(\d+)\|[^\]]+\]|id(\d+)"
 pattern_group_id = r"\[club(\d+)\|[^\]]+\]"
@@ -236,7 +237,7 @@ def get_optimized_words(text):
 
 
 def get_attachment_photo(photo):
-    os.chdir("/root/server/tmp")
+    os.chdir(tmp_dir)
     max_p = 0
     for size in photo["sizes"]:
         if size["width"] * size["height"] > max_p:

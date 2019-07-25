@@ -133,6 +133,7 @@ class Chat_Info(BaseModel):
     group_check = IntegerField(default=0)
     whitelist = ArrayField(default=[])
     antimat = BooleanField(default=False)
+    greet_attachments = CharField(default="")
 
     class Meta:
         indexes = (
@@ -395,6 +396,14 @@ class DB_For_Chat_Info:
 
     def get_greeting(self, chat_id):
         return Chat_Info.get_item(Chat_Info.greeting, chat_id, "")
+    
+    def get_greet_attachments(self, chat_id):
+        return Chat_Info.get_item(Chat_Info.greet_attachments, chat_id, "")
+    
+    def set_greet_attachments(self, chat_id, attachments):
+        chat = Chat_Info.get(chat_id=chat_id)
+        chat.greet_attachments = attachments
+        chat.save()
 
     def get_akick(self, chat_id):
         return Chat_Info.get_item(Chat_Info.akick, chat_id)

@@ -31,7 +31,7 @@ def timing_greet():
     time.sleep(1)
     global tmp_greet
     for i in tmp_greet:
-        sendmessage_chat(i, db.get_greeting(i))
+        sendmessage_chat(i, db.get_greeting(i), attachment=db.get_greet_attachments(i))
     tmp_greet = {}
 
 

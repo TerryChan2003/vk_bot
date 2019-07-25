@@ -430,7 +430,7 @@ def del_service(chat_id, user_ids, **kwargs):
 
 @enable_command
 def recognize(chat_id, **kwargs):
-    os.chdir("/root/server/tmp")
+    os.chdir(tmp_dir)
     for i in kwargs["attachments"]:
         if i["type"] == "audio_message":
             AUDIO_FILE = wget.download(f"{i['audio_message']['link_mp3']}")
@@ -458,7 +458,7 @@ def recognize(chat_id, **kwargs):
 
 @enable_command_with_permission(5)
 def пиздец(peer_id, **kwargs):
-    os.chdir("/root/server/tmp")
+    os.chdir(tmp_dir)
     count = 100
     file = f"hello{threading.get_ident()}.mp3"
     if kwargs["args"]:
@@ -473,7 +473,7 @@ def пиздец(peer_id, **kwargs):
 
 @enable_command
 def say_rus(peer_id, raw_text, **kwargs):
-    os.chdir("/root/server/tmp")
+    os.chdir(tmp_dir)
     file = f"tmp{threading.get_ident()}.mp3"
     gTTS(raw_text, lang="ru").save(file)
     audio = uploader.audio_message(file, peer_id)
@@ -483,7 +483,7 @@ def say_rus(peer_id, raw_text, **kwargs):
 
 @enable_command
 def say_eng(peer_id, raw_text, **kwargs):
-    os.chdir("/root/server/tmp")
+    os.chdir(tmp_dir)
     file = f"tmp{threading.get_ident()}.mp3"
     gTTS(raw_text).save(file)
     audio = uploader.audio_message(file, peer_id)
@@ -566,8 +566,8 @@ def addgreeting(chat_id, from_id, raw_text, **kwargs):
     if not text:
         sendmessage_chat(chat_id, "Укажите нужное приветствие.")
         return
-    if len(text) > 200:
-        sendmessage_chat(chat_id, "Приветствие должно быть не больше 200 символов!")
+    if len(text) > 4096:
+        sendmessage_chat(chat_id, "Приветствие должно быть не больше 4096 символов!")
         return
     if not db.get_chat_info(chat_id):
         db.add_chat_info(chat_id)
@@ -575,9 +575,15 @@ def addgreeting(chat_id, from_id, raw_text, **kwargs):
         db.update_greeting(chat_id, text)
     else:
         db.update_greeting(chat_id, text)
+    l = []
+    for attach in kwargs["attachments"]:
+        if attach["type"] == "photo":
+            l.append(get_attachment_photo(attach["photo"]))
+    if l:
+        db.set_greet_attachments(chat_id, ",".join(l))
     from_id_level = db.get_level_admin(chat_id, from_id)
     x = users_get(from_id, "sex")
-    sendmessage_chat(chat_id, "{} @id{} ({} {}) {} приветствие данной конференции.\n\nНовое приветствие: {}".format(lvl_name[from_id_level], x['id'], x['first_name'], x['last_name'],  "обновила" if x['sex'] == 1 else "обновил", text))
+    sendmessage_chat(chat_id, "{} @id{} ({} {}) {} приветствие данной конференции.\n\nНовое приветствие: {}".format(lvl_name[from_id_level], x['id'], x['first_name'], x['last_name'],  "обновила" if x['sex'] == 1 else "обновил", text), attachment=",".join(l))
 
 @enable_command_with_permission(3)
 def delgreeting(chat_id, from_id, **kwargs):
@@ -597,7 +603,7 @@ def delgreeting(chat_id, from_id, **kwargs):
 def greeting(chat_id, **kwargs):
     try:
         if not db.get_greeting(chat_id) == "":
-            sendmessage_chat(chat_id, 'Приветствие в данной конференции - "{}"'.format(db.get_greeting(chat_id)))
+            sendmessage_chat(chat_id, 'Приветствие в данной конференции - "{}"'.format(db.get_greeting(chat_id)), attachment=db.get_greet_attachments(chat_id))
         else:
             sendmessage_chat(chat_id, "Приветствие в данной конференции не задано.\nЧтобы задать, используйте команду - /addgreeting.")
     except:
