@@ -32,7 +32,7 @@ def check_group_verify_permission(f):
             sendmessage_chat(chat_id, "Увы, но у Вас не включена проверка по группе. Чтобы воспользоваться командами белого списка Вам нужно включить ограничение с помощью команды \n/enable_check_group @club(Ваш id группы без скобок. Например: @club1) или @(краткое название группы. Например: @testpool)")
     wrap.arguments = f.__code__.co_varnames[:f.__code__.co_argcount]
     return wrap
-        
+     
 @enable_command_with_permission(4)
 @enable_for_helper
 def msg_to(args, from_id, text_args, chat_id, **kwargs):
@@ -93,7 +93,7 @@ def online(chat_id, **kwargs):
 def enable_check_group(chat_id, group_ids, **kwargs):
     a = int(group_ids[0])
     if a > 1<<31 - 1:
-        sendmessage_chat(chat_id, f"Вы вышли за границы допустимых id гпупп. Максимальный id {1<<31 -1}")
+        sendmessage_chat(chat_id, f"Вы вышли за границы допустимых id групп. Максимальный id {1<<31 -1}")
         return
     g = get_ref(-a)
     whitelist = db.get_whitelist(chat_id)
@@ -130,7 +130,7 @@ def disable_check_group(chat_id, **kwargs):
 @enable_command_with_permission(4)
 def exit_chat(chat_id, args, from_id, **kwargs):
     exit_bot_chat(int(args[0]))
-    sendmessage_chat(chat_id, "Успешно вышел")
+    sendmessage_chat(chat_id, "Успешно вышел из чата")
 
 @enable_command_with_permission(4)
 @enable_for_helper
@@ -141,13 +141,7 @@ def ckick(args, chat_id, from_id, user_ids, text_args, **kwargs):
     except:
         sendmessage_chat(chat_id, "Требуется числовой id чата")
         return
-    if from_id not in devspeclist:
-        helper = db.get_hstats(from_id)
-        form = f"Агент поддержки #{helper.id}"
-    elif from_id in speclist:
-        form = f"Спецадминистратор #{speclist.index(from_id)+1}"
-    else:
-        form = f"Разработчик #{devlist.index(from_id)+1}"
+    form = get_role(from_id)
     for i in user_ids:
         r = get_ref(i)
         if db.get_level_admin(chat_id, i) not in [0, 1, 2, 3]:
@@ -159,9 +153,9 @@ def ckick(args, chat_id, from_id, user_ids, text_args, **kwargs):
         if not vk_member_can_kick(chat_id, i):
             sendmessage_chat(2, f"{r} нельзя кикнуть, т.к. он является администратором конференции")
             continue
-        if from_chat_id != 2:
-            sendmessage_chat(2, f"{form} исключил из беседы {r} id чата {chat_id}. Комментарий: {text_args[0]}")
+        sendmessage_chat(2, f"{form} ({get_ref(from_id)}) исключил из беседы {r} (ID: {chat_id}). Комментарий: {text_args[0]}")
         sendmessage_chat(chat_id, f"{r}, {form} исключил Вас из беседы. Комментарий: {text_args[0]}")
+
         vk.messages.removeChatUser(chat_id=chat_id, member_id=i)
 
 
@@ -175,13 +169,7 @@ def cban(args, chat_id, from_id, user_ids, text_args, **kwargs):
     except:
         sendmessage_chat(chat_id, "Требуется числовой id чата")
         return
-    if from_id not in devspeclist:
-        helper = db.get_hstats(from_id)
-        form = f"Агент поддержки #{helper.id}"
-    elif from_id in speclist:
-        form = f"Спецадминистратор #{speclist.index(from_id)+1}"
-    else:
-        form = f"Разработчик #{devlist.index(from_id)+1}"
+    form = get_role(from_id)
     for i in user_ids:
         r = get_ref(i)
         if db.check_ban(chat_id, i):
@@ -196,11 +184,49 @@ def cban(args, chat_id, from_id, user_ids, text_args, **kwargs):
         if not vk_member_can_kick(chat_id, i):
             sendmessage_chat(2, f"{r} нельзя кикнуть, т.к. он является администратором конференции")
             continue
-        if from_chat_id != 2:
-            sendmessage_chat(2, f"{form} заблокировал из беседы {r} id чата {chat_id}. Комментарий: {text_args[0]}")
+        sendmessage_chat(2, f"{form} ({get_ref(from_id)}) заблокировал из беседы {r} (ID: {chat_id}). Комментарий: {text_args[0]}")
         sendmessage_chat(chat_id, f"{r}, {form} заблокировал Вас из беседы. Комментарий: {text_args[0]}")
         vk.messages.removeChatUser(chat_id=chat_id, member_id=i)
         db.add_ban(chat_id, i)
+
+@enable_command_with_permission(4)
+@enable_for_helper
+def caddadmin(args, chat_id, from_id, user_ids, **kwargs):
+    from_chat_id = chat_id
+    try:
+        chat_id = int(args[0])
+    except:
+        sendmessage_chat(chat_id, "Требуется числовой id чата")
+        return
+    try:
+        level = int(args[1])
+    except:
+        sendmessage_chat(2, "Требуется указать уровень (вторым числом).")
+        return
+    form = get_role(from_id)
+    for i in user_ids:
+        r = get_ref(i, "acc")
+        if level >= 4 or level < 0:
+            sendmessage_chat(2, "Укажите уровень (0-3).")
+            return
+        if db.get_level_admin(chat_id, i) not in [0, 1, 2, 3]:
+            sendmessage_chat(2, "Вы не имеете права редактировать должности спецадминистраторов и разработчиков")
+            continue
+        if not vk_member_exists(chat_id, int(i)):
+            sendmessage_chat(2, f"{r} не существует в конференции под id {chat_id}")
+            continue
+        if level == 0:
+            sendmessage_chat(chat_id, f"{form} снял {r} с должности {lvl_name[level]}")
+            sendmessage_chat(2, f"{form} ({get_ref(from_id)}) снял {r} с должности {lvl_name[level]} ({level} уровень) (ID: {chat_id})")
+            return
+        sendmessage_chat(2, f"{form} ({get_ref(from_id)}) назначил {r} на должность {lvl_name[level]} ({level} уровень) (ID: {chat_id})")
+        if db.add_admin(chat_id, i, level):
+            sendmessage_chat(chat_id, f"{form} назначил {r} на должность {lvl_name[level]} ({level} уровень)")
+        else:
+            db.remove_admin(chat_id, i)
+            db.add_admin(chat_id, i, level)
+            sendmessage_chat(chat_id, f"{form} назначил {r} на должность {lvl_name[level]} ({level} уровень)")
+
 
 
 @enable_command_with_permission(4)
@@ -227,16 +253,15 @@ def cwarn(args, chat_id, from_id, user_ids, text_args, **kwargs):
         if not vk_member_exists(chat_id, int(i)):
             sendmessage_chat(2, f"{r} не существует в конференции под id {chat_id}")
             continue
-        if from_chat_id != 2:
-            sendmessage_chat(2, f"{form} предупредил из беседы {r} id чата {chat_id}. Комментарий: {text_args[0]}")
-        sendmessage_chat(chat_id, f"{r}, {form} предупредил Вас из беседы. Комментарий: {text_args[0]}")
+        sendmessage_chat(2, f"{form} ({get_ref(from_id)}) выдал предупреждение {r} (ID: {chat_id}). Комментарий: {text_args[0]}")
+        sendmessage_chat(chat_id, f"{r}, {form} выдал Вам предупреждение. Комментарий: {text_args[0]}")
 
 
 @enable_command_with_permission(2)
 def blist(chat_id, **kwargs):
     r = Ban_List.select().where(Ban_List.chat_id == chat_id)
     if len(r) > 0:
-        l = "\n\n".join([get_ref(i.user_id) for i in r])
+        l = "\n".join([get_ref(i.user_id) for i in r])
         sendmessage_chat(chat_id, f"В списке заблокированных находятся:\n\n{l}")
     else:
         sendmessage_chat(chat_id, "Нет заблокированных пользователей в Вашей конференции")
@@ -259,7 +284,7 @@ def addwhite(chat_id, user_ids, **kwargs):
             continue
         r = get_ref(i)
         if db.add_whitelist(chat_id, int(i)):
-            sendmessage_chat(chat_id, f"{r} введен в белый список")
+            sendmessage_chat(chat_id, f"{r} добавлен в белый список")
         else:
             sendmessage_chat(chat_id, f"{r} уже существует в белом списке")
 
@@ -301,11 +326,12 @@ def warn(chat_id, user_ids, from_id, **kwargs):
             continue
         w = db.add_warn(chat_id, i)
         if w:
-            sendmessage_chat(chat_id, f"@id{i} (Пользователю) было выдано предупреждение! {w.count}/{warn_max}")
+            sendmessage_chat(chat_id, f"{get_ref(i)} получил предупреждение [{w.count}/{warn_max}]")
         else:
             try:
-                sendmessage_chat(chat_id, f"Исключаем @id{i} (Пользователя) из беседы за превышение количества предупреждений...")
+                #sendmessage_chat(chat_id, f"Исключаем @id{i} (Пользователя) из беседы за превышение количества предупреждений...")
                 vk.messages.removeChatUser(chat_id=chat_id, member_id=i)
+                sendmessage_chat(chat_id, f"{get_ref(i)} исключен за превышение количества предупреждений.")
             except Exception as e:
                 if str(e) == "[15] Access denied: can't remove this user":
                     sendmessage_chat(chat_id, f"{x} не удалось заблокировать, вероятнее всего он администратор.")
@@ -515,7 +541,7 @@ def addhelper(chat_id, user_ids, from_id, **kwrags):
           #  return
         if not db.get_hstats(i):
             db.add_helper(i, from_id)
-            sendmessage_chat(chat_id, "@id{} был назначен на должность агента поддержки.".format(str(i)))
+            sendmessage_chat(chat_id, "{} был назначен на должность агента поддержки.".format(get_ref(i), str(i)))
         else:
             sendmessage_chat(chat_id, "Пользователь уже является агентом поддержки.")
 
@@ -524,7 +550,7 @@ def delhelper(chat_id, user_ids, from_id, **kwrags):
     for i in user_ids:
         if db.get_hstats(i):
             db.del_helper(i)
-            sendmessage_chat(chat_id, "@id{} был снят с должности агента поддержки.".format(str(i)))
+            sendmessage_chat(chat_id, "{} был снят с должности агента поддержки.".format(get_ref(i), str(i)))
         else:
             sendmessage_chat(chat_id, "Пользователь не является агентом поддержки.")
 
@@ -621,7 +647,8 @@ def kick(chat_id, user_ids, from_id, **kwargs):
             sendmessage_chat(chat_id, "Вы не имеете права исключать пользователей выше или равному себе уровню администрации")
             return
         try:
-            sendmessage_chat(chat_id, f"Исключение {x} из конференции...")
+            #sendmessage_chat(chat_id, f"Исключение {x} из конференции...")
+            sendmessage_chat(chat_id, f"{get_ref(i)} исключен из беседы")
             vk.messages.removeChatUser(chat_id=chat_id, member_id=i)
             try:
                 Admin_List.get(chat_id=chat_id, user_id=i).delete_instance()
@@ -629,7 +656,7 @@ def kick(chat_id, user_ids, from_id, **kwargs):
                 print(e)
         except Exception as e:
             if str(e) == "[15] Access denied: can't remove this user":
-                sendmessage_chat(chat_id, f"{x} не удалось исключить, вероятнее всего он администратор.")
+                sendmessage_chat(chat_id, f"{x} является администратором беседы")
             elif str(e) == "[935] User not found in chat":
                 sendmessage_chat(chat_id, f"{x} нет в конференции")
             else:
@@ -746,7 +773,7 @@ def title(chat_id, from_id, raw_text, **kwargs):
 def report(chat_id, from_id, raw_text, **kwargs):
     text = raw_text
     if db.check_muted_report(from_id):
-        sendmessage_chat(chat_id, "Данная команда не доступна для вас, т. к. были нарушены правила обращения в поддержку")
+        sendmessage_chat(chat_id, "Данная команда не доступна для Вас, т. к. были нарушены правила обращения в поддержку")
         return
     x = users_get(from_id)
     report = Reports(user_id = from_id, chat_id = chat_id, text = text)
@@ -781,6 +808,7 @@ def adm(chat_id, from_id, args, **kwargs):
         return
     if id >= 4 or id < 0:
         sendmessage_chat(chat_id, "Используйте: /adm [уровень (1-3)] (или 0, чтобы снять)")
+        return
     from_id_level = db.get_level_admin(chat_id, from_id)
     if id == 0:
         if db.get_level_admin(chat_id, from_id):

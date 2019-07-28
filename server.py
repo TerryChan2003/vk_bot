@@ -129,7 +129,7 @@ def process_audio_attachments(chat_id, from_id, attachments):
                 audio = r.record(source)  # read the entire audio file
             os.remove(AUDIO_FILE)
             try:
-                sendmessage_chat(chat_id, f"@id{from_id}(✉) {r.recognize_google(audio, language='ru-RU')}")
+                sendmessage_chat(chat_id, f"{get_ref(from_id)}: {r.recognize_google(audio, language='ru-RU')}")
             except sr.UnknownValueError as e:
                 sendmessage_chat(chat_id, "Мы не поняли что в данном сообщении...")
             except sr.RequestError as e:
