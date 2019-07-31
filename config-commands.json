@@ -1,0 +1,14 @@
+{
+    "command_aliases": {
+        "кик": "kick",
+        "бан": "ban",
+        "rep": "report"
+    },
+    "command_prefixes": [
+        "/",
+        "+",
+        "!",
+        "-",
+        "бот"
+    ]
+}

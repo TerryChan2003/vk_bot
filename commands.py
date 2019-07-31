@@ -793,10 +793,6 @@ def report(chat_id, from_id, raw_text, **kwargs):
     \n\nНет ответа: {} ".format(text, report.id, from_id, x['first_name'], x['last_name'], otv), attachment=", ".join(l))
 
 @enable_command
-def rep(chat_id, from_id, raw_text, **kwargs):
-    report(chat_id, from_id, raw_text, **kwargs)
-
-@enable_command
 def adm(chat_id, from_id, args, **kwargs):
     if chat_id != 170:
         sendmessage_chat(chat_id, "Данная команда доступна строго в тестовой конференции.")

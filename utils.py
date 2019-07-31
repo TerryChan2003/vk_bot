@@ -23,6 +23,8 @@ db = DB()
 
 with open("config.json", "r") as f:
     data = json.load(f)
+with open("config-commands.json") as f:
+    config_commands = json.load(f)
 
 bug_priority = {
     1: "Низкий",
@@ -147,6 +149,8 @@ groupid = data["group_id"]
 devlist = data["devlist"]
 speclist = data["speclist"]
 tmp_dir = data["tmp_dir"]
+command_prefixes = tuple(config_commands["command_prefixes"])
+command_aliases = config_commands["command_aliases"]
 devspeclist = devlist + speclist
 pattern_user_id = r"\[id(\d+)\|[^\]]+\]|id(\d+)"
 pattern_group_id = r"\[club(\d+)\|[^\]]+\]"
@@ -257,7 +261,7 @@ def groups_get(group_id, fields="", **kwargs):
 
 
 def enable_for_helper(f):
-    helper_permissions.append("/" + f.__name__)
+    helper_permissions.append(f.__name__)
     return f
 
 
@@ -353,7 +357,7 @@ def parseArgs(args, fwd_messages, command, chat_id, reply_message=None, **kwargs
 
 
 def enable_command(f, permission=0):
-    cmd = "/" + f.__name__
+    cmd = f.__name__
     commands[cmd] = f
     for i in range(permission, 6):
         permissions[i].append(cmd)

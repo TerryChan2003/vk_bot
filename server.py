@@ -213,6 +213,7 @@ def process_command(chat_id, raw, text, from_id, peer_id, fwd_messages=None, rep
         args = ""
     options["raw_text"] = args
     options["args"] = args
+    command = command_aliases.get(command, command)
     if command in commands:
         options["command"] = command
         if not check_permissions_command(command, from_id, chat_id):
@@ -279,7 +280,12 @@ def event_handler(event):
         if action:
             process_action(chat_id, peer_id, date, from_id, action, attachments)
             return
-        if text.startswith("/"):
+        if text.startswith(command_prefixes):
+            for i in command_prefixes:
+                if text.startswith(i):
+                    text = text[len(i):]
+                    break
+            options["text"] = text
             process_command(**options)
 
 
