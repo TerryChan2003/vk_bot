@@ -33,6 +33,13 @@ def check_group_verify_permission(f):
     wrap.arguments = f.__code__.co_varnames[:f.__code__.co_argcount]
     return wrap
      
+@enable_command_with_permission(3)
+def clear(chat_id, from_id, **kwrags):
+    text = ""
+    for _ in range(0,500):
+        text += "&#13;\n"
+    sendmessage_chat(chat_id, f"{text}\n{get_ref(from_id)} очистил чат.")
+
 @enable_command_with_permission(4)
 @enable_for_helper
 def msg_to(args, from_id, text_args, chat_id, **kwargs):
@@ -215,9 +222,11 @@ def caddadmin(args, chat_id, from_id, user_ids, **kwargs):
         if not vk_member_exists(chat_id, int(i)):
             sendmessage_chat(2, f"{r} не существует в конференции под id {chat_id}")
             continue
-        if level == 0:
-            sendmessage_chat(chat_id, f"{form} снял {r} с должности {lvl_name[level]}")
-            sendmessage_chat(2, f"{form} ({get_ref(from_id)}) снял {r} с должности {lvl_name[level]} ({level} уровень) (ID: {chat_id})")
+        if level == 0: 
+            from_id_level = db.get_level_admin(chat_id, i)
+            sendmessage_chat(chat_id, f"{form} снял {r} с должности {lvl_name[from_id_level]}")
+            sendmessage_chat(2, f"{form} ({get_ref(from_id)}) снял {r} с должности {lvl_name[from_id_level]} ({from_id_level} уровень) (ID: {chat_id})")
+            db.remove_admin(chat_id, i)
             return
         sendmessage_chat(2, f"{form} ({get_ref(from_id)}) назначил {r} на должность {lvl_name[level]} ({level} уровень) (ID: {chat_id})")
         if db.add_admin(chat_id, i, level):
@@ -1028,6 +1037,17 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
         sendmessage_chat(i.chat_id, "\nОтправил: @id{}\nВопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.user_id, i.text, post, text), attachment=",".join(l))
     sendmessage_chat(chat_id, "Ответ был успешно отправлен")
 
+@enable_command_with_permission(4)
+def allkick(chat_id, user_ids, **kwargs):
+    for i in user_ids:
+        for z in db.get_chat_infos():
+            if i in vk_get_chat_members(z.chat_id):
+                if not vk_member_can_kick(z.chat_id, i):
+                    sendmessage_chat(chat_id, f"{get_ref(i)} не удалось исключить из беседы #{z.chat_id}")
+                else:
+                    vk.messages.removeChatUser(chat_id = z.chat_id, member_id = i)
+        sendmessage_chat(chat_id, f"{get_ref(i)} исключен из всех возможных бесед")
+            
 
 @enable_command_with_permission(5)
 def msg(chat_id, raw_text, from_id, **kwargs):
@@ -1150,6 +1170,7 @@ def check_chats(chat_id, **kwargs):
             print(str(e).split("\n")[0])
     for i in Chat_Info.select():
         threading.Thread(target=func, args=(i,)).start()
+
         
         
 
