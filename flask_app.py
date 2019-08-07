@@ -43,7 +43,7 @@ def auth_wrap(f):
     def wrapper(*args, **kwargs):
         url = "https://example.com/?" + "&".join([f"{k}={v}" for k, v in request.args.items()])
         query_params = dict(parse_qsl(urlparse(url).query, keep_blank_values=True))
-        status = is_valid(query=query_params, secret=client_secret)
+        status = is_valid(query=query_params, secret=client_secret) or is_valid(query=query_params, secret=client_secret_s)
 
         if not status:
             return jsonify(items="error: Not permission")

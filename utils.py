@@ -142,6 +142,7 @@ permissions = [[], [], [], [], [], []]
 helper_permissions = []
 requirements = {}
 client_secret = data["client_secret"]
+client_secret_s = data["client_secret_s"]
 token = data["token"]
 service_token = data["service_token"]
 vk_s = VkApi(token=service_token).get_api()
