@@ -1149,27 +1149,21 @@ def checkblack(chat_id, **kwargs):
 @enable_command_with_permission(5)
 def check_chats(chat_id, **kwargs):
     sendmessage_chat(chat_id, "Начинаю сканировать")
-    def func(i):
-        i = i.chat_id
-        try:
-            r = vk.messages.getConversationsById(peer_ids=CHAT_START_ID + i)["items"][0]
+    def func():
+        chat_ids = list(map(lambda x: x.chat_id, Chat_Info.select(Chat_Info.chat_id).order_by(Chat_Info.chat_id)))
+        peer_ids = map(lambda x: str(x + CHAT_START_ID), chat_ids)
+        for r in vk.messages.getConversationsById(peer_ids=",".join(peer_ids))["items"]:
             settings = r["chat_settings"]
             title = settings["title"]
             photo = settings["photo"]["photo_200"] if "photo" in settings else "."
-            chat = Chat_Info.get(chat_id=i)
+            chat = Chat_Info.get(chat_id=r["peer"]["local_id"])
             chat.title = title
             chat.photo = photo
             chat.save()
-        except Exception as e:
-            if str(e) == "list index out of range":
-                Chat_Info.get(chat_id=i).delete_instance()
-                Admin_List.delete().where(Admin_List.chat_id == i).execute()
-                return
-            elif str(e) == "duplicate key value violates unique constraint \"chat_info_chat_id\"":
-                return
-            print(str(e).split("\n")[0])
-    for i in Chat_Info.select():
-        threading.Thread(target=func, args=(i,)).start()
+            chat_ids.remove(r["peer"]["local_id"])
+        sendmessage_chat(chat_id, ",".join(map(str, chat_ids)) + " : Заблокировали доступ к беседе")
+    func()
+    sendmessage_chat(chat_id, "Сканирование завершено")
 
         
         
