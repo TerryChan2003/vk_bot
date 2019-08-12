@@ -1315,5 +1315,3 @@ def comments(from_id, chat_id, args, text_args, **kwargs):
     except:
         sendmessage_chat(chat_id, f"{dolg}:\n{text_args[0]}")
     sendmessage_chat(chat_id, "Комментарий к отчету отправлен.")
-
-check_chats(4107)
