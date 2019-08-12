@@ -23,7 +23,7 @@ import importlib
 
 tmp_greet = {}
 tmp_chat_msg = {}
-msg_limits = 2
+msg_limits = 3
 warnings_spam = {}
 
 

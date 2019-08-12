@@ -27,7 +27,7 @@ from openpyxl import Workbook
 
 app = Flask(__name__)
 app.register_blueprint(chats_urls.bp, url_prefix="/chats/<int:chat_id>")
-CORS(app)
+CORS(app, origins=["https://igryakalov.github.io"])
 
 
 def is_valid(*, query: dict, secret: str) -> bool:
