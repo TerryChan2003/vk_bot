@@ -205,7 +205,7 @@ vk_get_multiple_chats_info = lambda *x: VkFunction(
     code='''var i = 0;
     var list = [];
     while (i < %(chats_packets)s.length) {
-        list.push(API.messages.send({peer_ids:%(chats_packets)s[i]}));
+        list.push(API.messages.getConversationsById({peer_ids:%(chats_packets)s[i]}));
         i=i+1;
     };
     return list;''')(vk, *x)
