@@ -1151,8 +1151,8 @@ def check_chats(chat_id, **kwargs):
     sendmessage_chat(chat_id, "Начинаю сканировать")
     def func():
         chat_ids = list(map(lambda x: x.chat_id, Chat_Info.select(Chat_Info.chat_id).order_by(Chat_Info.chat_id)))
-        peer_ids = tuple(map(lambda x: str(x + CHAT_START_ID), chat_ids))
-        packets = map(lambda x: vk.messages.getConversationsById(peer_ids=",".join(peer_ids[100*(x-1):100*x])), range(math.ceil(len(chat_ids)/100)))
+        peer_ids = list(map(lambda x: str(x + CHAT_START_ID), chat_ids))
+        packets = map(lambda x: vk.messages.getConversationsById(peer_ids=",".join(peer_ids[100*x:100*(x+1)])), range(math.ceil(len(chat_ids)/100)))
         for packet in packets:
             for r in packet["items"]:
                 settings = r["chat_settings"]
