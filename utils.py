@@ -199,7 +199,7 @@ vk_send_multiple_chats = lambda *x: VkFunction(
         API.messages.send(params);
         i=i+1;
     } ''')(vk, *x)
-vk_get_multiple_chats_info = lambda *x: VkFunction(
+vk_get_multiple_chats_info = lambda x: VkFunction(
     args=('chats_packets'),
     clean_args=('chats_packets'),
     code='''var i = 0;
@@ -208,7 +208,7 @@ vk_get_multiple_chats_info = lambda *x: VkFunction(
         list.push(API.messages.getConversationsById({peer_ids:%(chats_packets)s[i]}));
         i=i+1;
     };
-    return list;''')(vk, *x)
+    return list;''')(vk, x)
 
 
 def get_role(from_id):
