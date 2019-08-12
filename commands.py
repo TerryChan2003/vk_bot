@@ -1152,17 +1152,19 @@ def check_chats(chat_id, **kwargs):
     def func():
         chat_ids = list(map(lambda x: x.chat_id, Chat_Info.select(Chat_Info.chat_id).order_by(Chat_Info.chat_id)))
         peer_ids = list(map(lambda x: str(x + CHAT_START_ID), chat_ids))
-        packets = map(lambda x: vk.messages.getConversationsById(peer_ids=",".join(peer_ids[100*x:100*(x+1)])), range(math.ceil(len(chat_ids)/100)))
-        for packet in packets:
-            for r in packet["items"]:
-                settings = r["chat_settings"]
-                title = settings["title"]
-                photo = settings["photo"]["photo_200"] if "photo" in settings else "."
-                chat = Chat_Info.get(chat_id=r["peer"]["local_id"])
-                chat.title = title
-                chat.photo = photo
-                chat.save()
-                chat_ids.remove(r["peer"]["local_id"])
+        packets = list(map(lambda x: peer_ids[100 * x:100 * (x + 1)], range(math.ceil(len(chat_ids) / 100))))
+        packetos = map(lambda x: vk_get_multiple_chats_info(packets[25 * x:25 * (x + 1)]), range(math.ceil(len(packets) / 25)))
+        for packets in packetos:
+            for packet in packets:
+                for r in packet["items"]:
+                    settings = r["chat_settings"]
+                    title = settings["title"]
+                    photo = settings["photo"]["photo_200"] if "photo" in settings else "."
+                    chat = Chat_Info.get(chat_id=r["peer"]["local_id"])
+                    chat.title = title
+                    chat.photo = photo
+                    chat.save()
+                    chat_ids.remove(r["peer"]["local_id"])
         sendmessage_chat(chat_id, ",".join(map(str, chat_ids)) + " : Заблокировали доступ к беседе")
     func()
     sendmessage_chat(chat_id, "Сканирование завершено")
