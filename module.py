@@ -159,11 +159,21 @@ class Warns(BaseModel):
         )
 
 class Service(BaseModel):
-    user_id = IntegerField(unique=True)
-    onboarding = BooleanField(default=True)
+        user_id = IntegerField(unique=True)
+        onboarding = BooleanField(default=True)
+
+class Testers(BaseModel):
+        id = PrimaryKeyField()
+        user_id = IntegerField(unique=True)
+        balls = IntegerField(default=0)
+        data = IntegerField(default=get_time)
+        admin = IntegerField()
+        kick = BooleanField(default=False)
+        akick = IntegerField(default=0)
+        reason = TextField(default="None")
 
 
-tables = [Admin_List, Ban_List, Report_Muted, Helpers, Black_List, Chat_Info, BugList, Users, ChatMembers, Service, Reports, Warns, Refer_Switch]
+tables = [Admin_List, Ban_List, Report_Muted, Helpers, Black_List, Chat_Info, BugList, Users, ChatMembers, Service, Reports, Warns, Refer_Switch, Testers]
 db_handler.create_tables(tables)
 
 class DB_For_Refer_Switch:
@@ -258,6 +268,31 @@ class DB_For_Users:
         user = self.get_users(user_id)
         setattr(user, params, rez)
         user.save()
+
+class DB_For_Testers:
+    def add_tester(self, user_id, admin):
+        Testers(user_id = user_id, admin = admin)
+
+    def get_testers(self, user_id):
+        try:
+            return Testers.get(user_id = user_id)
+        except:
+            return False    
+
+    def update_testers(self, user_id, params, rez):
+        tester = self.get_testers(user_id)
+        setattr(tester, params, rez)
+        tester.save()
+
+    def get_testers(self):
+        return Testers.select()
+
+    def get_balls(self, user_id):
+        r = Testers.get_or_none(user_id = user_id)
+        if r:
+            return r.balls
+        else:
+            return 0
 
 class DB_For_Helpers:
     def add_helper(self, user_id, admin):
@@ -483,5 +518,5 @@ class DB_For_Chat_Info:
         Chat_Info.get(chat_id=chat_id).delete_instance()
 
 
-class DB(DB_For_Admin_List, DB_For_Helpers, DB_For_Ban_List, DB_For_Report_Muted, DB_For_Chat_Info, DB_For_Black_List, DB_For_Users, DB_For_Reports, DB_For_Warns, DB_For_Refer_Switch):
+class DB(DB_For_Admin_List, DB_For_Helpers, DB_For_Ban_List, DB_For_Report_Muted, DB_For_Chat_Info, DB_For_Black_List, DB_For_Users, DB_For_Reports, DB_For_Warns, DB_For_Refer_Switch, DB_For_Testers):
     ...

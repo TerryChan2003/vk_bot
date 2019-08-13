@@ -543,16 +543,40 @@ def setrep(user_ids, text_args, chat_id, from_id, **kwargs):
             sendmessage_chat(chat_id, "Пользователь не является агентом поддержки.")
 
 @enable_command_with_permission(4)
+def addtester(chat_id, user_ids, from_id, **kwargs):
+        for i in user_ids:
+            if not db.get_testers(i):
+                db.add_tester(i, from_id)
+                sendmessage_chat(chat_id, f"{get_ref(i)} был назначен на должность тестера.")
+            else:
+                sendmessage_chat(chat_id, "Пользователь уже является тестером.")
+
+@enable_command_with_permission(4)
 def addhelper(chat_id, user_ids, from_id, **kwrags):
+        for i in user_ids:
+            #if db.get_level_admin(chat_id, i) >= 4:
+            #   sendmessage_chat(chat_id, "Его нельзя назначить.")
+            #  return
+            if not db.get_hstats(i):
+                db.add_helper(i, from_id)
+                sendmessage_chat(chat_id, "{} был назначен на должность агента поддержки.".format(get_ref(i)))
+            else:
+                sendmessage_chat(chat_id, "Пользователь уже являлся тестером. Переназначили.")
+                db.update_testers(i, "kick", False)
+                db.update_testers(i, "akick", 0)
+                db.update_testers(i, "reason", "None")
+                db.update_testers(i, "data", get_time())
+
+@enable_command_with_permission(4)
+def deltester(chat_id, user_ids, from_id, raw_text, **kwargs):
     for i in user_ids:
-        #if db.get_level_admin(chat_id, i) >= 4:
-         #   sendmessage_chat(chat_id, "Его нельзя назначить.")
-          #  return
-        if not db.get_hstats(i):
-            db.add_helper(i, from_id)
-            sendmessage_chat(chat_id, "{} был назначен на должность агента поддержки.".format(get_ref(i), str(i)))
+        if db.get_testers(i):
+            db.update_testers(i, "kick", True)
+            db.update_testers(i, "akick", from_id)
+            db.update_testers(i, "reason", raw_text)
+            sendmessage_chat(chat_id, f"{get_ref(i)} снят с должности тестера.")
         else:
-            sendmessage_chat(chat_id, "Пользователь уже является агентом поддержки.")
+            sendmessage_chat(chat_id, "Пользователь не является тестером.")
 
 @enable_command_with_permission(4)
 def delhelper(chat_id, user_ids, from_id, **kwrags):
