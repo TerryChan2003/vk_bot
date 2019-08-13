@@ -221,6 +221,10 @@ def get_role(from_id):
     else:
         return f"Разработчик #{devlist.index(from_id)+1}"
 
+def chunk_list(iteriable, count):
+    listing = tuple(iteriable)
+    for i in range(math.ceil(len(listing) / count)):
+        yield listing[i*count:(i+1)*count]
 
 def users_get(user_id, fields="", **kwargs):
     try:
