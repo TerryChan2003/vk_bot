@@ -545,7 +545,7 @@ def setrep(user_ids, text_args, chat_id, from_id, **kwargs):
 @enable_command_with_permission(4)
 def addtester(chat_id, user_ids, from_id, **kwargs):
         for i in user_ids:
-            if not db.get_testers(i):
+            if not db.get_tester(i):
                 db.add_tester(i, from_id)
                 sendmessage_chat(chat_id, f"{get_ref(i)} был назначен на должность тестера.")
             else:
@@ -570,7 +570,7 @@ def addhelper(chat_id, user_ids, from_id, **kwrags):
 @enable_command_with_permission(4)
 def deltester(chat_id, user_ids, from_id, raw_text, **kwargs):
     for i in user_ids:
-        if db.get_testers(i):
+        if db.get_tester(i):
             db.update_testers(i, "kick", True)
             db.update_testers(i, "akick", from_id)
             db.update_testers(i, "reason", raw_text)

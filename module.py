@@ -273,7 +273,7 @@ class DB_For_Testers:
     def add_tester(self, user_id, admin):
         Testers(user_id = user_id, admin = admin)
 
-    def get_testers(self, user_id):
+    def get_tester(self, user_id):
         try:
             return Testers.get(user_id = user_id)
         except:
