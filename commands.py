@@ -1164,10 +1164,10 @@ def check_chats(chat_id, **kwargs):
                     chat.photo = photo
                     chat.save()
                     chat_ids.append(r["peer"]["local_id"])
+        sendmessage_chat(chat_id, ",".join(map(str, map(lambda x: x.chat_id, Chat_Info.select(chat_id).where(Chat_Info.chat_id.not_in(chat_ids))))) + " : Заблокировали доступ к беседе")
         for i in tables:
             if hasattr(i, "chat_id"):
                 i.delete().where(getattr(i, "chat_id").not_in(chat_ids)).execute()
-        sendmessage_chat(chat_id, ",".join(map(str, map(lambda x: x.chat_id, Chat_Info.select(chat_id).where(Chat_Info.chat_id.not_in(chat_ids))))) + " : Заблокировали доступ к беседе")
     func()
     sendmessage_chat(chat_id, "Сканирование завершено")
 
