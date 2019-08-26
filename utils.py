@@ -26,24 +26,6 @@ with open("config.json", "r") as f:
 with open("config-commands.json") as f:
     config_commands = json.load(f)
 
-bug_priority = {
-    1: "Низкий",
-    2: "Средний",
-    3: "Высокий",
-    4: "Критический",
-    5: "Уязвимость",
-    6: "Предложение"
-}
-
-bug_status = {
-    0: "Открыт",
-    1: "В рассмотрении",
-    2: "В работе",
-    3: "Исправлен",
-    4: "Закрыт",
-    5: "Отклонен"
-}
-
 lvl_name = {
     0: "User",
     1: "Moderator",

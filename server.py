@@ -116,24 +116,25 @@ def process_chat(peer_id):
 
 def process_audio_attachments(chat_id, from_id, attachments):
     for i in attachments:
-        if i["type"] == "audio_message":
-            AUDIO_FILE = wget.download(f"{i['audio_message']['link_mp3']}")
-            src = AUDIO_FILE
-            dst = AUDIO_FILE.split(".")[0] + ".wav"
-            sound = AudioSegment.from_mp3(src)
-            sound.export(dst, format="wav")
-            os.remove(src)
-            AUDIO_FILE = dst
-            r = sr.Recognizer()
-            with sr.AudioFile(AUDIO_FILE) as source:
-                audio = r.record(source)  # read the entire audio file
-            os.remove(AUDIO_FILE)
-            try:
-                sendmessage_chat(chat_id, f"{get_ref(from_id)}: {r.recognize_google(audio, language='ru-RU')}")
-            except sr.UnknownValueError as e:
-                sendmessage_chat(chat_id, "Мы не поняли что в данном сообщении...")
-            except sr.RequestError as e:
-                raise e
+        if db.get_golos(chat_id):
+            if i["type"] == "audio_message":
+                AUDIO_FILE = wget.download(f"{i['audio_message']['link_mp3']}")
+                src = AUDIO_FILE
+                dst = AUDIO_FILE.split(".")[0] + ".wav"
+                sound = AudioSegment.from_mp3(src)
+                sound.export(dst, format="wav")
+                os.remove(src)
+                AUDIO_FILE = dst
+                r = sr.Recognizer()
+                with sr.AudioFile(AUDIO_FILE) as source:
+                    audio = r.record(source)  # read the entire audio file
+                os.remove(AUDIO_FILE)
+                try:
+                    sendmessage_chat(chat_id, f"{get_ref(from_id)}: {r.recognize_google(audio, language='ru-RU')}")
+                except sr.UnknownValueError as e:
+                    sendmessage_chat(chat_id, "Мы не поняли что в данном сообщении...")
+                except sr.RequestError as e:
+                    raise e
 
 
 def process_action(chat_id, peer_id, date, from_id, action, attachments):

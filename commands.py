@@ -32,7 +32,16 @@ def check_group_verify_permission(f):
             sendmessage_chat(chat_id, "Увы, но у Вас не включена проверка по группе. Чтобы воспользоваться командами белого списка Вам нужно включить ограничение с помощью команды \n/enable_check_group @club(Ваш id группы без скобок. Например: @club1) или @(краткое название группы. Например: @testpool)")
     wrap.arguments = f.__code__.co_varnames[:f.__code__.co_argcount]
     return wrap
-     
+
+@enable_command_with_permission(2)
+def translation(chat_id, **kwargs):
+    if db.get_golos(chat_id):
+        db.update_golos(chat_id, False)
+        sendmessage_chat(chat_id, "Вы отклюили перевод голосовых сообщений в текст")
+    elif not db.get_golos(chat_id):
+        db.update_golos(chat_id, True)
+        sendmessage_chat(chat_id, "Вы включили перевод голосовых сообщений в текст")
+
 @enable_command_with_permission(3)
 def clear(chat_id, from_id, **kwrags):
     text = ""
@@ -534,6 +543,21 @@ def say_eng(peer_id, raw_text, **kwargs):
 #        sendmessage_chat(chat_id, "Думаю, достаточно. Если нет - /ls.")
 
 @enable_command_with_permission(5)
+def givepoint(user_ids, chat_id, args, **kwargs):
+    for i in user_ids:
+        if not db.get_tester(i) or db.get_tester(i).kick:
+            sendmessage_chat(chat_id, "Пользователь не является тестером или был исключен.")
+            return
+        r = db.get_balls(i)
+        r = r+int(args[0])
+        db.update_testers(i, "points", r)
+        sendmessage_chat(chat_id, f"Тестеру начислено {args[0]} баллов. У него всего: {r}")
+        try:
+            sendmessage(i, f"Сообщество WORLD BOTS начислило Вам {args[0]} баллов")
+        except:
+            sendmessage_chat(59, f'Сообщество WORLD BOTS начислило {get_ref(i, "dat")} {args[0]} баллов')
+
+@enable_command_with_permission(5)
 def setrep(user_ids, text_args, chat_id, from_id, **kwargs):
     for i in user_ids:
         if db.get_hstats(i):
@@ -549,7 +573,11 @@ def addtester(chat_id, user_ids, from_id, **kwargs):
                 db.add_tester(i, from_id)
                 sendmessage_chat(chat_id, f"{get_ref(i)} был назначен на должность тестера.")
             else:
-                sendmessage_chat(chat_id, "Пользователь уже является тестером.")
+                sendmessage_chat(chat_id, "Пользователь уже являлся тестером. Переназначили")
+                db.update_testers(i, "kick", False)
+                db.update_testers(i, "akick", 0)
+                db.update_testers(i, "reason", "None")
+                db.update_testers(i, "data", get_time())
 
 @enable_command_with_permission(4)
 def addhelper(chat_id, user_ids, from_id, **kwrags):
@@ -561,19 +589,15 @@ def addhelper(chat_id, user_ids, from_id, **kwrags):
                 db.add_helper(i, from_id)
                 sendmessage_chat(chat_id, "{} был назначен на должность агента поддержки.".format(get_ref(i)))
             else:
-                sendmessage_chat(chat_id, "Пользователь уже являлся тестером. Переназначили.")
-                db.update_testers(i, "kick", False)
-                db.update_testers(i, "akick", 0)
-                db.update_testers(i, "reason", "None")
-                db.update_testers(i, "data", get_time())
+                sendmessage_chat(chat_id, "Пользователь уже являлся агентом поддержки.")
 
 @enable_command_with_permission(4)
-def deltester(chat_id, user_ids, from_id, raw_text, **kwargs):
+def deltester(chat_id, user_ids, from_id, text_args, **kwargs):
     for i in user_ids:
         if db.get_tester(i):
             db.update_testers(i, "kick", True)
             db.update_testers(i, "akick", from_id)
-            db.update_testers(i, "reason", raw_text)
+            db.update_testers(i, "reason", text_args[0])
             sendmessage_chat(chat_id, f"{get_ref(i)} снят с должности тестера.")
         else:
             sendmessage_chat(chat_id, "Пользователь не является тестером.")
@@ -1211,6 +1235,7 @@ def akick(chat_id, from_id, **kwargs):
             db.add_chat_info(chat_id)
         sendmessage_chat(chat_id, "Вы запретили исключать пользователей при выходе из конференции.")
 
+""""
 @enable_command
 def addbug(chat_id, from_id, text_args, args, **kwargs):
     if not chat_id == 59:
@@ -1340,3 +1365,4 @@ def comments(from_id, chat_id, args, text_args, **kwargs):
     except:
         sendmessage_chat(chat_id, f"{dolg}:\n{text_args[0]}")
     sendmessage_chat(chat_id, "Комментарий к отчету отправлен.")
+"""

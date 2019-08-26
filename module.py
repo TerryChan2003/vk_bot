@@ -134,6 +134,7 @@ class Chat_Info(BaseModel):
     whitelist = ArrayField(default=[])
     antimat = BooleanField(default=False)
     greet_attachments = CharField(default="")
+    golos = BooleanField(default=False)
 
     class Meta:
         indexes = (
@@ -159,18 +160,18 @@ class Warns(BaseModel):
         )
 
 class Service(BaseModel):
-        user_id = IntegerField(unique=True)
-        onboarding = BooleanField(default=True)
+    user_id = IntegerField(unique=True)
+    onboarding = BooleanField(default=True)
 
 class Testers(BaseModel):
-        id = PrimaryKeyField()
-        user_id = IntegerField(unique=True)
-        balls = IntegerField(default=0)
-        data = IntegerField(default=get_time)
-        admin = IntegerField()
-        kick = BooleanField(default=False)
-        akick = IntegerField(default=0)
-        reason = TextField(default="None")
+    id = PrimaryKeyField()
+    user_id = IntegerField(unique=True)
+    points = IntegerField(default=0)
+    data = CharField(default=get_time)
+    admin = IntegerField()
+    kick = BooleanField(default=False)
+    akick = IntegerField(default=0)
+    reason = TextField(default="None")
 
 
 tables = [Admin_List, Ban_List, Report_Muted, Helpers, Black_List, Chat_Info, BugList, Users, ChatMembers, Service, Reports, Warns, Refer_Switch, Testers]
@@ -270,17 +271,18 @@ class DB_For_Users:
         user.save()
 
 class DB_For_Testers:
+
     def add_tester(self, user_id, admin):
-        Testers(user_id = user_id, admin = admin)
+        Testers(user_id=user_id, admin=admin).save()
 
     def get_tester(self, user_id):
         try:
-            return Testers.get(user_id = user_id)
+            return Testers.get(user_id=user_id)
         except:
             return False    
 
     def update_testers(self, user_id, params, rez):
-        tester = self.get_testers(user_id)
+        tester = self.get_tester(user_id)
         setattr(tester, params, rez)
         tester.save()
 
@@ -290,7 +292,7 @@ class DB_For_Testers:
     def get_balls(self, user_id):
         r = Testers.get_or_none(user_id = user_id)
         if r:
-            return r.balls
+            return r.points
         else:
             return 0
 
@@ -400,6 +402,15 @@ class DB_For_Ban_List:
         return Ban_List.select()
 
 class DB_For_Chat_Info:
+
+    def update_golos(self, chat_id, status):
+        goloss = Chat_Info.get_or_create(chat_id=chat_id)[0]
+        goloss.golos = status
+        goloss.save()
+
+    def get_golos(self, chat_id):
+        return Chat_Info.get_item(Chat_Info.golos, chat_id, False)
+
     def add_chat_info(self, chat_id):
         Chat_Info(chat_id=chat_id).save()
 

@@ -49,7 +49,6 @@
         "делмут": "unmute_report",
         "муты": "get_muted_report",
         "реп": "setrep",
-        "баг": "addbug",
         "очистить": "clear"
     },
     "command_prefixes": [
