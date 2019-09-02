@@ -114,9 +114,9 @@ def process_chat(peer_id):
     return options
 
 
-def process_audio_attachments(chat_id, from_id, attachments):
+def process_audio_attachments(peer_id, from_id, attachments):
     for i in attachments:
-        if db.get_golos(chat_id):
+        if db.get_golos(peer_id - CHAT_START_ID) or not db.get_chat_info(peer_id - CHAT_START_ID):
             if i["type"] == "audio_message":
                 AUDIO_FILE = wget.download(f"{i['audio_message']['link_mp3']}")
                 src = AUDIO_FILE
@@ -130,9 +130,9 @@ def process_audio_attachments(chat_id, from_id, attachments):
                     audio = r.record(source)  # read the entire audio file
                 os.remove(AUDIO_FILE)
                 try:
-                    sendmessage_chat(chat_id, f"{get_ref(from_id)}: {r.recognize_google(audio, language='ru-RU')}")
+                    sendmessage(peer_id, f"{get_ref(from_id)}: {r.recognize_google(audio, language='ru-RU')}")
                 except sr.UnknownValueError as e:
-                    sendmessage_chat(chat_id, "Мы не поняли что в данном сообщении...")
+                    sendmessage(peer_id, "Мы не поняли что в данном сообщении...")
                 except sr.RequestError as e:
                     raise e
 
@@ -235,6 +235,19 @@ def process_command(chat_id, raw, text, from_id, peer_id, fwd_messages=None, rep
 
 def event_handler(event):
     if event.type == VkBotEventType.MESSAGE_NEW:
+        obj = event.obj
+        peer_id = obj.peer_id
+        attachments = obj.attachments
+        from_id = obj.from_id
+        fwd_messages = obj.fwd_messages
+        reply_message = obj.reply_message
+        if not attachments:
+            if reply_message:
+                attachments = reply_message["attachments"]
+            elif fwd_messages:
+                attachments = fwd_messages[0]["attachments"]
+        if attachments and peer_id:
+            process_audio_attachments(peer_id, from_id, attachments)
         if event.obj.action and event.obj.action["type"] == "chat_invite_user" and event.obj.action["member_id"] == -groupid:
             sendmessage(event.obj.peer_id, "Здравствуйте!\n\nВы добавили меня в Вашу беседу. Для того, чтобы я начал работать, сделайте следующее:\
             \n1. Выдайте мне права администратора в данной беседе.\n2. Пропишите команду /getadmin.")
@@ -276,8 +289,6 @@ def event_handler(event):
             #sendmessage(peer_id, "Бот работает исключительно в конференции")
             return
         process_user(from_id, chat_id, text)
-        if attachments:
-            process_audio_attachments(chat_id, from_id, attachments)
         if action:
             process_action(chat_id, peer_id, date, from_id, action, attachments)
             return

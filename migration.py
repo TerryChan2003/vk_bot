@@ -6,5 +6,5 @@ db_handler = PostgresqlExtDatabase("vk_app")
 migrator = PostgresqlMigrator(db_handler)
 
 migrate(
-    migrator.add_column("chat_info", "greet_attachments", CharField(default=""))
+    migrator.add_column("chat_info", "golos", BooleanField(default=False))
 )
