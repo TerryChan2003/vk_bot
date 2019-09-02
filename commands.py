@@ -29,7 +29,7 @@ def check_group_verify_permission(f):
         if db.get_chat_group_check(chat_id):
             return f(chat_id=chat_id, *args, **kwargs)
         else:
-            sendmessage_chat(chat_id, "Увы, но у Вас не включена проверка по группе. Чтобы воспользоваться командами белого списка Вам нужно включить ограничение с помощью команды \n/enable_check_group @club(Ваш id группы без скобок. Например: @club1) или @(краткое название группы. Например: @testpool)")
+            sendmessage_chat(chat_id, "Увы, но у Вас не включена проверка по группе. Чтобы воспользоваться командами белого списка, Вам нужно включить ограничение с помощью команды \n/enable_check_group @club(Ваш id группы без скобок. Например: @club1) или @(краткое название группы. Например: @testpool)")
     wrap.arguments = f.__code__.co_varnames[:f.__code__.co_argcount]
     return wrap
 
@@ -37,7 +37,7 @@ def check_group_verify_permission(f):
 def translation(chat_id, **kwargs):
     if db.get_golos(chat_id):
         db.update_golos(chat_id, False)
-        sendmessage_chat(chat_id, "Вы отклюили перевод голосовых сообщений в текст")
+        sendmessage_chat(chat_id, "Вы отключили перевод голосовых сообщений в текст")
     elif not db.get_golos(chat_id):
         db.update_golos(chat_id, True)
         sendmessage_chat(chat_id, "Вы включили перевод голосовых сообщений в текст")
@@ -1047,6 +1047,9 @@ def check_report(chat_id, args, **kwargs):
 @enable_command_with_permission(4)
 @enable_for_helper
 def ans(chat_id, from_id, text_args, args, **kwargs):
+    if "с уважением" in text_args[0].lower():
+        sendmessage_chat(chat_id, "Возможно, стоит перечитать FAQ перед тем как отвечать на репорты.")
+        return
     getadm = db.get_level_admin(chat_id, from_id)
     if getadm == 4:
         if not db.get_hstats(from_id):
@@ -1082,7 +1085,12 @@ def ans(chat_id, from_id, text_args, args, **kwargs):
     try:
         sendmessage(i.user_id, "Вопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.text, post, text), attachment=",".join(l))
     except:
-        sendmessage_chat(i.chat_id, "\nОтправил: @id{}\nВопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.user_id, i.text, post, text), attachment=",".join(l))
+        try:
+            sendmessage_chat(i.chat_id, "\nОтправил: @id{}\nВопрос: {}\nОтвет от {}: {}\n\nС уважением, команда поддержки.".format(i.user_id, i.text, post, text), attachment=",".join(l))
+        except:
+            sendmessage_chat(chat_id, "Нет прав, но ответ записал в сервис.")
+    if len(text_args[0]) < 15:
+        sendmessage_chat(26, f"[ANS] Подозрительный ответ:\n\n{text}\nОтветил: {get_ref(from_id)}")
     sendmessage_chat(chat_id, "Ответ был успешно отправлен")
 
 @enable_command_with_permission(4)
