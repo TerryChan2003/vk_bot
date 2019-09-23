@@ -4,6 +4,8 @@ import datetime
 import re
 import sqlite3
 import os
+import requests
+from pydub import AudioSegment
 from vk_api.bot_longpoll import VkBotEventType, VkBotLongPoll, CHAT_START_ID
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id
@@ -20,10 +22,12 @@ import random
 from threading import Thread
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 import importlib
+import speech_recognition as sr
 
 tmp_greet = {}
 tmp_chat_msg = {}
 msg_limits = 3
+messagesday = 0
 warnings_spam = {}
 
 
@@ -41,7 +45,7 @@ def timing_messages(chat_id, from_id):
     global warnings_spam
     v = tmp_chat_msg[chat_id][from_id]
     if v > msg_limits:
-        sendmessage_chat(2, f"""[ANTI-SPAM] Конференция {chat_id} подозревается в спаме. Сообщений в секунду: {v}, отправители: {get_ref(from_id)}. Дата и время: {get_time()}
+        sendmessage_chat(2, f"""[ANTI-SPAM] Беседа #{chat_id} подозревается в спаме. Сообщений в секунду: {v}, отправители: {get_ref(from_id)}. Дата и время: {get_time()}
 Информация о беседе:
 Название: {db.get_title(chat_id)}
 Количество участников: {len(vk_get_chat_members(chat_id))} """)
@@ -55,8 +59,8 @@ def timing_messages(chat_id, from_id):
             warnings_spam[chat_id][from_id] = 1
         if warnings_spam[chat_id][from_id] >= 3:
             if vk_member_can_kick(chat_id, from_id):
-                sendmessage_chat(chat_id, "Мы вынуждены Вас кикнуть из-за спама.")
-                sendmessage_chat(2, f"""[ANTI-SPAM] Конференция {chat_id} подозревается в спаме. Сообщений в секунду: {v}, отправители: {get_ref(from_id)}. Дата и время: {get_time()}
+                sendmessage_chat(chat_id, "Мы вынуждены Вас исключить из беседы из-за спама.")
+                sendmessage_chat(2, f"""[ANTI-SPAM] Беседа #{chat_id} подозревается в спаме. Сообщений в секунду: {v}, отправители: {get_ref(from_id)}. Дата и время: {get_time()}
 Информация о беседе:
 Название: {db.get_title(chat_id)}
 Количество участников: {len(vk_get_chat_members(chat_id))}
@@ -68,8 +72,9 @@ def timing_messages(chat_id, from_id):
 bot_longpoll = VkBotLongPoll(session, groupid)
 logfile = "log_errors.txt"
 
-
 def process_user(from_id, chat_id, text):
+    if get_fishing_syte(text):
+        return sendmessage_chat(2, f"{get_ref(from_id)} возможно отправляет ссылку на фишинговый сайт.\nТекст: {text}\nID беседы: {str(chat_id)}\nДата и время: {get_time()}")
     global tmp_chat_msg
     if chat_id in tmp_chat_msg:
         if from_id in tmp_chat_msg[chat_id]:
@@ -113,10 +118,9 @@ def process_chat(peer_id):
             ...
     return options
 
-
-def process_audio_attachments(peer_id, from_id, attachments):
+def process_audio_attachments(chat_id, from_id, attachments):
     for i in attachments:
-        if db.get_golos(peer_id - CHAT_START_ID) or not db.get_chat_info(peer_id - CHAT_START_ID):
+        if db.get_golos(chat_id):
             if i["type"] == "audio_message":
                 AUDIO_FILE = wget.download(f"{i['audio_message']['link_mp3']}")
                 src = AUDIO_FILE
@@ -130,9 +134,9 @@ def process_audio_attachments(peer_id, from_id, attachments):
                     audio = r.record(source)  # read the entire audio file
                 os.remove(AUDIO_FILE)
                 try:
-                    sendmessage(peer_id, f"{get_ref(from_id)}: {r.recognize_google(audio, language='ru-RU')}")
+                    sendmessage_chat(chat_id, f"{get_ref(from_id)}: {r.recognize_google(audio, language='ru-RU')}")
                 except sr.UnknownValueError as e:
-                    sendmessage(peer_id, "Мы не поняли что в данном сообщении...")
+                    sendmessage_chat(chat_id, "Мы не поняли что в данном сообщении...")
                 except sr.RequestError as e:
                     raise e
 
@@ -141,12 +145,18 @@ def process_action(chat_id, peer_id, date, from_id, action, attachments):
     if action["type"] in ["chat_invite_user", "chat_invite_user_by_link"]:
         if action["type"] == "chat_invite_user_by_link":
             action['member_id'] = from_id
+        """if db.get_level_admin(chat_id, action['member_id']) < db.get_inviteuser(chat_id) and action["member_id"] not in devspeclist:
+            try:
+                vk.messages.removeChatUser(chat_id=chat_id, user_id=action["member_id"])
+                sendmessage_chat(chat_id, "У Вас нет прав для приглашения пользователей")
+            except:
+                ..."""
         r = db.get_chat_group_check(chat_id)
         if r != 0 and action["member_id"] > 0 and action["member_id"] not in devspeclist:
             if action["member_id"] in db.get_whitelist(chat_id):
                 sendmessage_chat(chat_id, f"{get_ref(action['member_id'])} проверка пропускается, он находится в белом списке")
             elif not vk.groups.isMember(user_id=action["member_id"], group_id=r):
-                sendmessage_chat(chat_id, f"Мы вынуждены Вас исключить, т.к. по правилу конференции Вы не находитесь в группе {get_ref(-r)}")
+                sendmessage_chat(chat_id, f"Мы вынуждены Вас исключить, т.к. по правилу беседы Вы не находитесь в группе {get_ref(-r)}")
                 vk.messages.removeChatUser(chat_id=chat_id, user_id=action["member_id"])
                 return
         # if action['member_id'] == -173243972:
@@ -158,7 +168,7 @@ def process_action(chat_id, peer_id, date, from_id, action, attachments):
                 vk.messages.removeChatUser(chat_id=chat_id, member_id=action["member_id"])
             except:
                 ...
-            sendmessage_chat(chat_id, "@id{} (Пользователь) был заблокирован разработчиком.\nПригласить его - невозможно".format(action["member_id"]))
+            sendmessage_chat(chat_id, "@id{} (Пользователь) был заблокирован разработчиком.\nПригласить его невозможно".format(action["member_id"]))
         elif db.check_ban(chat_id, action["member_id"]):
             try:
                 vk.messages.removeChatUser(chat_id=chat_id, member_id=action["member_id"])
@@ -175,11 +185,12 @@ def process_action(chat_id, peer_id, date, from_id, action, attachments):
             elif tmp_greet[chat_id] != date:
                 sendmessage_chat(chat_id, db.get_greeting(chat_id))
                 del tmp_greet[chat_id]
+
     elif action["type"] == "chat_title_update":
-        if db.get_level_admin(chat_id, from_id) <= 1:
+        if db.get_level_admin(chat_id, from_id) < db.get_settile(chat_id):
             if not db.get_title(chat_id) == "":
                 vk.messages.editChat(chat_id=chat_id, title=db.get_title(chat_id))
-                sendmessage_chat(chat_id, "У Вас недостаточно прав, чтобы менять название конференции.")
+                sendmessage_chat(chat_id, "У Вас недостаточно прав, чтобы менять название беседы.")
         else:
             db.update_title(chat_id, action["text"])
     elif action["type"] == "chat_kick_user":
@@ -234,20 +245,9 @@ def process_command(chat_id, raw, text, from_id, peer_id, fwd_messages=None, rep
 
 
 def event_handler(event):
+    global messagesday
     if event.type == VkBotEventType.MESSAGE_NEW:
-        obj = event.obj
-        peer_id = obj.peer_id
-        attachments = obj.attachments
-        from_id = obj.from_id
-        fwd_messages = obj.fwd_messages
-        reply_message = obj.reply_message
-        if not attachments:
-            if reply_message:
-                attachments = reply_message["attachments"]
-            elif fwd_messages:
-                attachments = fwd_messages[0]["attachments"]
-        if attachments and peer_id:
-            process_audio_attachments(peer_id, from_id, attachments)
+        messagesday += 1
         if event.obj.action and event.obj.action["type"] == "chat_invite_user" and event.obj.action["member_id"] == -groupid:
             sendmessage(event.obj.peer_id, "Здравствуйте!\n\nВы добавили меня в Вашу беседу. Для того, чтобы я начал работать, сделайте следующее:\
             \n1. Выдайте мне права администратора в данной беседе.\n2. Пропишите команду /getadmin.")
@@ -278,7 +278,15 @@ def event_handler(event):
                 attachments = fwd_messages[0]["attachments"]
         options["attachments"] = attachments
         if text == "!":
-            sendmessage(peer_id, f"Активен. Работаю в стабильном режиме.\n {get_time()}")
+            if db.get_level_admin(peer_id - CHAT_START_ID, from_id) < 4 and peer_id - CHAT_START_ID != 2:
+                return
+            start = time.time()
+            requests.get('https://thedeax.tk')
+            used_start = time.time() - start
+            if int(used_start) < 1:
+                sendmessage(peer_id, f"Активен. Работаю в стабильном режиме.\n{get_time()}\nPing: {str(round(used_start, 3))}\nОтработано сообщений после рестарта: {str(messagesday)}")
+            else:
+                sendmessage(peer_id, f"Есть проблемы с работой.\n{get_time()}\nPing: {str(round(used_start, 3))}\nОтработано сообщений после рестарта: {str(messagesday)}")
             return
         peer_id = peer_id
         r = process_chat(peer_id)
@@ -289,6 +297,8 @@ def event_handler(event):
             #sendmessage(peer_id, "Бот работает исключительно в конференции")
             return
         process_user(from_id, chat_id, text)
+        if attachments:
+            process_audio_attachments(chat_id, from_id, attachments)
         if action:
             process_action(chat_id, peer_id, date, from_id, action, attachments)
             return

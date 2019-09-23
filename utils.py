@@ -1,21 +1,12 @@
 import math
 from transliterate import translit
-from vk_api.bot_longpoll import CHAT_START_ID
 from vk_api.utils import get_random_id
 from vk_api import VkApi
 from vk_api.execute import VkFunction
-from gtts.tts import gTTS
-from random import choice
 from vk_api.upload import VkUpload
-import speech_recognition as sr
-from pydub import AudioSegment
 import wget
-from pprint import pprint
 import re
-import json
-import datetime
 from module import *
-from functools import wraps
 import pymorphy2
 morph = pymorphy2.MorphAnalyzer()
 
@@ -87,7 +78,8 @@ help_list += [help_list[-1] + "\n" + """/ban - Заблокировать пол
 /title - Сменить название конференции
 /refer - Упомянуть всем участникам конференции
 /akick - Разрешить/запретить исключать при выходе
-/blist - Просмотреть список заблокированных пользователей"""]
+/blist - Просмотреть список заблокированных пользователей
+/getname - просмотреть название должности"""]
 # Для создателей беседы
 help_list += [help_list[-1] + "\n" + """/addadmin - Назначить пользователя на пост администратора
 /deladmin - Снять пользователя с поста администратора
@@ -101,7 +93,8 @@ help_list += [help_list[-1] + "\n" + """/addadmin - Назначить поль�
 /disable_check_group - Выключает ограничения по вступлению
 /addwhite - Добавляет в белый список чтобы не проверяло по группе
 /delwhite - Удаляет из белого списка и разрешает проверку по группе
-/clear - очистить чат"""]
+/clear - очистить чат
+/setname - сменить название должности"""]
 # Для спецадминистраторов
 help_list += [help_list[-1] + "\n" + """/addblack - Добавить пользователя в черный спискок
 /delblack - Убрать пользователя из черного списка
@@ -144,7 +137,7 @@ pattern_duplicate = r"(.+)\1+"
 pattern_symbols = r'[^0-9a-zA-Zа-яА-Я\s]+'
 commands = {}
 en_alphavet = [chr(ord("a") + i) for i in range(26)]
-session = VkApi(token=token, api_version="5.100")
+session = VkApi(token=token, api_version="5.101")
 vk = session.get_api()
 uploader = VkUpload(session)
 vk_get_chat_members = lambda *x: VkFunction(
@@ -193,8 +186,38 @@ def vk_get_multiple_chats_info(x): return VkFunction(
     }
     return results;''')(vk, x)
 
+def get_fishing_syte(text):
+    if text.startswith('/') or text.startswith('.'):
+        return False
+    if not "." in text:
+        return False
+    if ".com" in text or ".ru" in text or ".tk" in text or 'youtu.be' in text or 'vk.me' in text:
+        return False
+    else:
+        if "https" in text or ("/" in text and 'https' in text):
+            return True
+        else:
+            return False
+
+def get_name_adm(chat_id, level):
+    if level == 0:
+        return db.get_level_adm(chat_id).level_0
+    elif level == 1:
+        return db.get_level_adm(chat_id).level_1
+    elif level == 2:
+        return db.get_level_adm(chat_id).level_2
+    elif level == 3:
+        return db.get_level_adm(chat_id).level_3
+    elif level == 4:
+        return db.get_level_adm(chat_id).level_4
+    elif level == 5:
+        return db.get_level_adm(chat_id).level_5
+    else:
+        return "None"
 
 def get_role(from_id):
+    if db.get_hstats(from_id).name != "None":
+        return db.get_hstats(from_id).name
     if from_id not in devspeclist:
         helper = db.get_hstats(from_id)
         return f"Агент поддержки #{helper.id}"
@@ -213,7 +236,6 @@ def users_get(user_id, fields="", **kwargs):
         return vk.users.get(user_ids=user_id, fields=fields, **kwargs)[0]
     except:
         ...
-
 
 def group_words(words, word=".", length=4096, delimiter=""):
     r = []
@@ -273,7 +295,6 @@ def get_ref(peer_id, name_case=""):
         peer_id = abs(peer_id)
         x = groups_get(peer_id)
         return f"@club{peer_id} ({x['name']})"
-
 
 def parseArgs(args, fwd_messages, command, chat_id, reply_message=None, **kwargs):
     args = str(args) if args else None
@@ -417,24 +438,31 @@ def get_format_time(stime, case="accs"):
 
 
 def error_handler(command, errors, peer_id, **kwargs):
+    #sendmessage(peer_id, f"Command: {str(command)}, Error: {str(errors)}")
+    command = str(command)
     if "text_args" in errors:
-        sendmessage(peer_id, "Укажите нужное сообщение в кавычках.")
+        if command == "setname":
+            sendmessage(peer_id, "Укажите нужное имя в кавычках.")
+        else:
+            sendmessage(peer_id, "Укажите нужное сообщение в кавычках.")
     elif "user_ids" in errors:
-        if command == "/enable_check_group":
+        if command == "enable_check_group":
             sendmessage(peer_id, "Здесь Вы должны указать группу, по которой будет введено ограничение вступления в конференцию. Например @testpool , @club1")
         else:
             sendmessage(peer_id, "К данной команде не хватает параметра id пользователей. Например, id1 или по упоминанию @id1 (Павел Дуров)")
     elif "group_ids" in errors:
         sendmessage(peer_id, "Вы должны указать группу. Например: @testpool, https://vk.com/testpool или @club1")
     elif "args" in errors:
-        if command == "/addadmin":
+        if command == "addadmin":
             sendmessage(peer_id, "Для данной команды вам нужно указать уровень администрациии. 1 - Moderator, 2 - Administrator.")
-        elif command == "/warn_kick_set":
+        elif command == "warn_kick_set":
             sendmessage(peer_id, "Укажите количество предупреждений.")
+        elif command == 'settitle' or command == 'inviteuser':
+            sendmessage(peer_id, 'Укажите уровень')
         else:
             sendmessage(peer_id, "Требуется числовой аргумент! Возможно это ID беседы?")
     elif "raw_text" in errors:
-        if command in ["/rep", "/report"]:
+        if command in ["rep", "report"]:
             sendmessage(peer_id, "Напишите текст Вашего обращения в поддержку")
         else:
             sendmessage(peer_id, "Напишите текст для этого")
@@ -449,9 +477,14 @@ def check_permissions_command(command, from_id, chat_id):
     if command in permissions[from_lvl]:
         return True
     elif command in helper_permissions:
+        if chat_id != 2:
+            return False
         try:
-            Helpers.get(user_id=from_id)
-            return True
+            r = Helpers.get(user_id=from_id)
+            if not r.kick:
+                return True
+            else:
+                return False
         except Exception as e:
             return False
     else:

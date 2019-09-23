@@ -4,6 +4,7 @@ from peewee import *
 from playhouse.postgres_ext import *
 
 db_handler = PostgresqlExtDatabase("vk_app", autocommit=True, autorollback=True)
+db_handler1 = PostgresqlExtDatabase("bug_tracker", autocommit=True, autorollback=True)
 
 # db_handler = SqliteDatabase("base1.db")
 # db_handler = PooledSqliteDatabase("base1.db")
@@ -17,6 +18,10 @@ def get_time():
 class BaseModel(Model):
     class Meta:
         database = db_handler
+
+class BaseChallenger(Model):
+    class Meta:
+        database = db_handler1
 
 
 class Reports(BaseModel):
@@ -45,6 +50,7 @@ class Admin_List(BaseModel):
     chat_id = IntegerField()
     user_id = IntegerField()
     level = IntegerField(default=0)
+    deleted = BooleanField(default=False)
 
     class Meta:
         indexes = (
@@ -79,11 +85,16 @@ class Report_Muted(BaseModel):
 class Helpers(BaseModel):
     id = PrimaryKeyField()
     user_id = IntegerField(unique=True)
+    name = TextField(default="None")
     vig = IntegerField(default=0)
     reports = IntegerField(default=0)
     data = CharField(default=get_time)
     admin = CharField()
     avatar = CharField(default="https://vk.com/images/support15_budda.png")
+    kick = BooleanField(default=False)
+    akick = IntegerField(default=0)
+    areason = TextField(default="None")
+    atime = CharField(default=0)
 
     class Meta:
         indexes = (
@@ -98,9 +109,6 @@ class Black_List(BaseModel):
         indexes = (
             (("user_id",), True),
         )
-
-
-
 
 class Users(BaseModel):
     user_id=IntegerField(unique=True)
@@ -135,6 +143,16 @@ class Chat_Info(BaseModel):
     antimat = BooleanField(default=False)
     greet_attachments = CharField(default="")
     golos = BooleanField(default=False)
+    level_5 = CharField(default="Developer")
+    level_4 = CharField(default="Special Administrator")
+    level_3 = CharField(default="Chief Administrator")
+    level_2 = CharField(default="Administrator")
+    level_1 = CharField(default="Moderator")
+    level_0 = CharField(default="User")
+    setlevel = BooleanField(default=False)
+    settitle = IntegerField(default=1)
+    inviteuser = IntegerField(default=0)
+    params = JSONField(default={"warns": "kick"})
 
     class Meta:
         indexes = (
@@ -173,9 +191,20 @@ class Testers(BaseModel):
     akick = IntegerField(default=0)
     reason = TextField(default="None")
 
+class Notifications(BaseChallenger):
+    id = PrimaryKeyField()
+    owner_id = IntegerField()
+    type = TextField()
+    data = JSONField()
+    created = TimestampField()
+    readed = BooleanField(default=False)
+    readed_in = TimestampField(default=-1)
+    sended_to_vk = BooleanField(default=False)
 
 tables = [Admin_List, Ban_List, Report_Muted, Helpers, Black_List, Chat_Info, BugList, Users, ChatMembers, Service, Reports, Warns, Refer_Switch, Testers]
 db_handler.create_tables(tables)
+tables = [Notifications]
+db_handler1.create_tables(tables)
 
 class DB_For_Refer_Switch:
     def switch_refer(self, chat_id, user_id):
@@ -192,7 +221,9 @@ class DB_For_Refer_Switch:
             return False
         except:
             return True
-    
+    ####
+    def add_notification(self, user_id, type, data):
+        Notifications(owner_id=user_id, type=type, data=data).save()
 
 class DB_For_Warns:
     def add_warn(self, chat_id, user_id):
@@ -228,6 +259,9 @@ class DB_For_Warns:
         return Warns.select().where(Warns.chat_id==chat_id, Warns.count>0)
 
 class DB_For_Reports:
+    def del_report(self, rid):
+        return Reports.get(id = rid).delete_instance()
+
     def add_report(self, user_id, chat_id, text):
         r = Reports(user_id=user_id, chat_id=chat_id, text=text)
         r.save()
@@ -311,11 +345,29 @@ class DB_For_Helpers:
         except:
             return False
 
-    def del_helper(self, user_id):
+    def get_helper_by_id(self, number):
         try:
-            return Helpers.get(user_id=user_id).delete_instance()
+            return Helpers.get(id=number)
         except:
             return False
+
+    def get_helper_by_name(self, name):
+        try:
+            return Helpers.get(name=name)
+        except:
+            return False
+
+    def del_helper(self, user_id, from_id, reason):
+        try:
+            r = Helpers.get(user_id=user_id)
+        except:
+            return False
+        r.kick = True
+        r.akick = from_id
+        r.atime = get_time()
+        r.areason=reason
+        r.save()
+        return True
 
     def get_helpers(self):
         return Helpers.select()
@@ -330,15 +382,48 @@ class DB_For_Admin_List:
         else:
             Admin_List(chat_id=chat_id, user_id=user_id, level=level).save()
 
+    def get_admins_all(self, user_id):
+        return Admin_List.select().where(Admin_List.user_id==user_id, Admin_List.deleted == False)
+
     def get_admins(self, chat_id):
-        return Admin_List.select().where(Admin_List.chat_id == chat_id)
+        return Admin_List.select().where(Admin_List.chat_id == chat_id, Admin_List.deleted == False)
 
     def get_level_admin(self, chat_id, user_id):
-        r = Admin_List.get_or_none(chat_id=chat_id, user_id=user_id)
+        try:
+            r = Admin_List.get(chat_id=chat_id, user_id=user_id)
+        except:
+            r = None
         if r:
-            return r.level
+            if r.deleted:
+                return 0
+            else:
+                return r.level
         else:
             return 0
+
+    def remove_admin_helper(self, chat_id, user_id):
+        try:
+            admin = Admin_List.get(chat_id=chat_id, user_id=user_id)
+        except:
+            return False
+        admin.deleted = True
+        admin.save()
+        return True
+
+    def add_admin_helper(self, chat_id, user_id):
+        try:
+            admin = Admin_List.get(chat_id=chat_id, user_id=user_id)
+        except:
+            return False
+        admin.deleted = False
+        admin.save()
+        return True
+
+    def get_info_admin(self, chat_id, user_id):
+        try:
+            return Admin_List.get(chat_id=chat_id, user_id=user_id).deleted
+        except:
+            return False
 
     def remove_admin(self, chat_id, user_id):
         admin = Admin_List.get_or_none(chat_id=chat_id, user_id=user_id)
@@ -402,6 +487,52 @@ class DB_For_Ban_List:
         return Ban_List.select()
 
 class DB_For_Chat_Info:
+    def get_params(self, chat_id):
+        return Chat_Info.get_or_none(chat_id=chat_id).params
+
+    def set_params(self, chat_id, params):
+        r = Chat_Info.get(chat_id=chat_id)
+        r.params = params
+        r.save()
+
+    def get_settile(self, chat_id):
+        return Chat_Info.get_or_none(chat_id=chat_id).settitle
+
+    def set_settile(self, chat_id, level):
+        r = Chat_Info.get_or_none(chat_id=chat_id)
+        r.settitle = level
+        r.save()
+        return True
+
+    def get_inviteuser(self, chat_id):
+        return Chat_Info.get_or_none(chat_id=chat_id).inviteuser
+
+    def set_inviteuser(self, chat_id, level):
+        r = Chat_Info.get_or_none(chat_id=chat_id)
+        r.inviteuser = level
+        r.save()
+        return True
+
+    def set_setlevel(self, chat_id, status=False):
+        r = Chat_Info.get(chat_id=chat_id)
+        r.setlevel = status
+        r.save()
+
+    def update_name(self, chat_id, level, name):
+        r = Chat_Info.get(chat_id=chat_id)
+        if level == 0:
+            r.level_0 = name
+        elif level == 1:
+            r.level_1 = name
+        elif level == 2:
+            r.level_2 = name
+        elif level == 3:
+            r.level_3 = name
+        elif level == 4:
+            r.level_4 = name
+        elif level == 5:
+            r.level_5 = name
+        r.save()
 
     def update_golos(self, chat_id, status):
         goloss = Chat_Info.get_or_create(chat_id=chat_id)[0]
@@ -450,6 +581,9 @@ class DB_For_Chat_Info:
         chat = Chat_Info.get(chat_id=chat_id)
         chat.greet_attachments = attachments
         chat.save()
+
+    def get_level_adm(self, chat_id):
+        return Chat_Info.get(chat_id=chat_id)
 
     def get_akick(self, chat_id):
         return Chat_Info.get_item(Chat_Info.akick, chat_id)

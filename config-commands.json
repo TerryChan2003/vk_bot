@@ -49,7 +49,10 @@
         "делмут": "unmute_report",
         "муты": "get_muted_report",
         "реп": "setrep",
-        "очистить": "clear"
+        "очистить": "clear",
+        "сменитьимя": "setname",
+        "имя": "getname",
+        "cid": "chatid"
     },
     "command_prefixes": [
         "/",
